@@ -1,0 +1,56 @@
+High level objects:
+
+Player
+	has
+	*stats: 
+		dex, magic, iq, phy...
+		type: sorceror, warrior, bird
+	*items: 
+	
+	can:
+	*wield stuff
+	*wear stuff (clothes, armor)
+	*uni: whistle
+	*bi: pick up <item>, throw <item>, talk to <person>, attack <monster|person>
+
+time:
+	has:
+	*secs, hours, minutes, days
+	*night
+	*day
+	*season
+
+	affects:
+	*any object can depend on time - an change over time.
+
+World(s):
+	has:
+	description
+	*many room
+	
+
+Room
+	has:
+	*description
+	*items
+	*person
+	*monster
+	*entries
+	*exits
+
+	can:
+	?
+	
+
+Monster (AI)
+
+
+Items:
+	has:
+	*description
+	* a possible carrier (or carriers).
+	can:
+	* do damage when used
+	* heal when used
+	* do damage
+	* 
