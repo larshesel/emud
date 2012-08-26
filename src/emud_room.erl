@@ -112,7 +112,7 @@ handle_call({set_description, Description}, _From, State) ->
     {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
     Reply = {ok, enter_room},
-    NewState = State#state{players = [Player, State#state.players]},
+    NewState = State#state{players = [Player| State#state.players]},
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
     Reply = {ok, State#state.players},
@@ -177,14 +177,3 @@ code_change(_OldVsn, State, _Extra) ->
     
 add_room(OldState, ToPid, Direction) ->
     OldState#state{directions=[{ToPid, Direction}| OldState#state.directions]}.
-
-
-%% get_room(RoomName) ->
-%%     #state{room_name = RoomName, 
-%%      directions=[{w, ], 
-%%      description="You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around.",
-%%      items=[
-%% 	    {"papers", invisible}, 
-%% 	    {"broken_chair", visible, "a broken chair"}
-%% 	   ]
-%%     }.
