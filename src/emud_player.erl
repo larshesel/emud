@@ -19,33 +19,13 @@
 
 -define(SERVER, ?MODULE). 
 
--record(equipped, {left_hand, right_hand}).
+%-record(equipped, {left_hand, right_hand}).
 
 -record(state, {stats, items, equipped}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-
-get_description() ->
-    "You are a great looking hunk of a man.".
-
-look_at(_Object) ->
-    ok.
-
-pick_up(_Object) ->
-    ok.
-
-drop(_Object) ->
-    ok.
-
-throw(_Object) ->
-    ok.
-
-go(_Direction) ->
-    ok.
-
-
 
 
 %%--------------------------------------------------------------------

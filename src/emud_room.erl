@@ -13,20 +13,36 @@
 %% API
 -export([start_link/0]).
 
+-export([get_description/1, get_directions/1, create_empty_room/0, set_description/2, link_rooms/3]).
+
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--define(SERVER, ?MODULE). 
+%%-define(SERVER, ?MODULE). 
 
--record(state, {}).
+-record(state, {room_name, directions=[], description, items=[]}).
+
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-get_description() ->
-    "You are in a room. There is nothing here.".
+create_empty_room() ->
+    start_link().
+
+link_rooms(FromPid, ToPid, Direction) ->
+    gen_server:call(FromPid, {link_room, ToPid, Direction}).
+
+get_description(Pid) ->
+    gen_server:call(Pid, {get_description}).
+
+get_directions(Pid) ->
+    gen_server:call(Pid, {get_directions}).
+
+set_description(Pid, Description) ->
+    gen_server:call(Pid, {set_description, Description}).
+    
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -36,7 +52,7 @@ get_description() ->
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -70,9 +86,20 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
+handle_call({get_directions}, _From, State) ->
+    Reply = {ok, {get_directions, State#state.directions}},
+    {reply, Reply, State};
+handle_call({get_description}, _From, State) ->
+    Reply = {ok, {get_description, State#state.description}},
+    {reply, Reply, State};
+handle_call({link_room, ToPid, Direction}, _From, State) ->
+    Reply = {ok, link_room},
+    NewState = add_room(State, ToPid, Direction),
+    {reply, Reply, NewState};
+handle_call({set_description, Description}, _From, State) ->
+    Reply = {ok, set_description},
+    NewState = State#state{description = Description},
+    {reply, Reply, NewState}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -128,3 +155,18 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+    
+add_room(OldState, ToPid, Direction) ->
+    OldState#state{directions=[{ToPid, Direction}| OldState#state.directions]}.
+
+
+%% get_room(RoomName) ->
+%%     #state{room_name = RoomName, 
+%%      directions=[{w, ], 
+%%      description="You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around.",
+%%      items=[
+%% 	    {"papers", invisible}, 
+%% 	    {"broken_chair", visible, "a broken chair"}
+%% 	   ]
+%%     }.
