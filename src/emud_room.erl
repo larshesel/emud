@@ -14,7 +14,7 @@
 -export([start_link/0]).
 
 -export([get_description/1, get_directions/1, create_empty_room/0, 
-	 set_description/2, link_rooms/3, get_players/1,
+	 set_description/2, link_rooms/3, get_players/1, get_items/1,
 	 enter/2]).
 
 %% gen_server callbacks
@@ -116,6 +116,9 @@ handle_call({enter_room, Player}, _From, State) ->
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
     Reply = {ok, State#state.players},
+    {reply, Reply, State};
+handle_call({get_items}, _From, State) ->
+    Reply = {ok, State#state.items},
     {reply, Reply, State}.
     
 

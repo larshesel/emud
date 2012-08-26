@@ -26,6 +26,10 @@ place_two_players_in_a_room_test() ->
     emud_player:enter(Room, P1),
     emud_player:enter(Room, P2).
 
+get_room_items_test() ->
+    {ok, Room} = emud_room:create_empty_room(),
+    {ok, _Items} = emud_room:get_items(Room).
+
 
 
     

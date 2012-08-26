@@ -82,11 +82,11 @@ handle_call({enter_room, Room, Player}, _From, State) ->
     NewState = State#state{room = Room},
     {reply, Reply, NewState};
 handle_call({describe}, _From, State) ->
-    {ok, RoomDescribtions} = emud_room:get_description(State#state.room),
+    {ok, RoomDescriptions} = emud_room:get_description(State#state.room),
     {ok, Directions} = emud_room:get_directions(State#state.room),
     {ok, Items} = emud_room:get_items(State#state.room),
     {ok, Players} = emud_room:get_players(State#state.room),
-    Reply = {ok, RoomDescribtions, Directions, Players},
+    Reply = {ok, RoomDescriptions, Directions, Players, Items},
     %% FIXME - entering a room might fail if the room won't let us enter! 
     {reply, Reply, State}.
 
