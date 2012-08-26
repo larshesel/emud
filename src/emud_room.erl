@@ -13,7 +13,9 @@
 %% API
 -export([start_link/0]).
 
--export([get_description/1, get_directions/1, create_empty_room/0, set_description/2, link_rooms/3]).
+-export([get_description/1, get_directions/1, create_empty_room/0, 
+	 set_description/2, link_rooms/3, get_players/1,
+	 enter/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -21,7 +23,7 @@
 
 %%-define(SERVER, ?MODULE). 
 
--record(state, {room_name, directions=[], description, items=[]}).
+-record(state, {room_name, directions=[], description, items=[], players=[]}).
 
 
 %%%===================================================================
@@ -42,7 +44,15 @@ get_directions(Pid) ->
 
 set_description(Pid, Description) ->
     gen_server:call(Pid, {set_description, Description}).
-    
+
+enter(RoomPid, Player) ->
+    gen_server:call(RoomPid, {enter_room, Player}).
+
+get_players(RoomPid) ->
+    gen_server:call(RoomPid, {get_players}).
+
+get_items(RoomPid) ->
+    gen_server:call(RoomPid, {get_items}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -99,7 +109,15 @@ handle_call({link_room, ToPid, Direction}, _From, State) ->
 handle_call({set_description, Description}, _From, State) ->
     Reply = {ok, set_description},
     NewState = State#state{description = Description},
-    {reply, Reply, NewState}.
+    {reply, Reply, NewState};
+handle_call({enter_room, Player}, _From, State) ->
+    Reply = {ok, enter_room},
+    NewState = State#state{players = [Player, State#state.players]},
+    {reply, Reply, NewState};
+handle_call({get_players}, _From, State) ->
+    Reply = {ok, State#state.players},
+    {reply, Reply, State}.
+    
 
 %%--------------------------------------------------------------------
 %% @private

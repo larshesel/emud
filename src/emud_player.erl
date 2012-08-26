@@ -13,20 +13,26 @@
 %% API
 -export([start_link/0]).
 
+-export([create_player/0, enter/2, describe/1]).
+
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--define(SERVER, ?MODULE). 
-
-%-record(equipped, {left_hand, right_hand}).
-
--record(state, {stats, items, equipped}).
+-record(state, {room}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
+create_player() ->
+    start_link().
+
+enter(Room, Player) ->
+    gen_server:call(Player, {enter_room, Room, Player}).
+
+describe(Player) ->
+    gen_server:call(Player, {describe}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -36,7 +42,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -70,9 +76,20 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(_Request, _From, State) ->
-    Reply = ok,
+handle_call({enter_room, Room, Player}, _From, State) ->
+    Reply = emud_room:enter(Room, Player),
+    %% FIXME - entering a room might fail if the room won't let us enter! 
+    NewState = State#state{room = Room},
+    {reply, Reply, NewState};
+handle_call({describe}, _From, State) ->
+    {ok, RoomDescribtions} = emud_room:get_description(State#state.room),
+    {ok, Directions} = emud_room:get_directions(State#state.room),
+    {ok, Items} = emud_room:get_items(State#state.room),
+    {ok, Players} = emud_room:get_players(State#state.room),
+    Reply = {ok, RoomDescribtions, Directions, Players},
+    %% FIXME - entering a room might fail if the room won't let us enter! 
     {reply, Reply, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
