@@ -7,7 +7,7 @@ create_player_test() ->
 
 create_room_test() ->
     {ok, StartRoom} = emud_room:create_empty_room(),
-    {ok, set_description} = emud_room:set_description(StartRoom, "You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around.").
+    ok = emud_room:set_description(StartRoom, "You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around.").
 
 create_linked_rooms_test() ->
     {ok, EastRoom} = emud_room:create_empty_room(),

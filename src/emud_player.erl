@@ -13,7 +13,7 @@
 %% API
 -export([start_link/0]).
 
--export([create_player/0, enter/2, describe/1]).
+-export([create_player/0, enter/2, describe/1, get_directions/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -33,6 +33,9 @@ enter(Room, Player) ->
 
 describe(Player) ->
     gen_server:call(Player, {describe}).
+
+get_directions(Player) ->
+    gen_server:call(Player, {get_directions}).
 
 %%--------------------------------------------------------------------
 %% @doc

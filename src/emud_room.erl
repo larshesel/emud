@@ -100,17 +100,17 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({get_directions}, _From, State) ->
-    Reply = {ok, {get_directions, State#state.directions}},
+    Reply = {ok, State#state.directions},
     {reply, Reply, State};
 handle_call({get_description}, _From, State) ->
-    Reply = {ok, {get_description, State#state.description}},
+    Reply = {ok, State#state.description},
     {reply, Reply, State};
 handle_call({link_room, ToPid, Direction}, _From, State) ->
-    Reply = {ok, link_room},
+    Reply = ok,
     NewState = add_room(State, ToPid, Direction),
     {reply, Reply, NewState};
 handle_call({set_description, Description}, _From, State) ->
-    Reply = {ok, set_description},
+    Reply = ok,
     NewState = State#state{description = Description},
     {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
