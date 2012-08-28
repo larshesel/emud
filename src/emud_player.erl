@@ -19,7 +19,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--record(state, {room}).
+-record(state, {room=no_room}).
 
 %%%===================================================================
 %%% API
@@ -78,16 +78,23 @@ init([]) ->
 %%--------------------------------------------------------------------
 handle_call({enter_room, Room, Player}, _From, State) ->
     Reply = emud_room:enter(Room, Player),
-    %% FIXME - entering a room might fail if the room won't let us enter! 
-    NewState = State#state{room = Room},
-    {reply, Reply, NewState};
+    case Reply of 
+	ok ->
+	    NewState = State#state{room = Room},
+	    %% leave the old room
+	    leave_old_room(State#state.room, Player),
+	    {reply, Reply, NewState};
+	{error, could_not_enter_room, Message} ->
+	    %% we were not allowed to enter!
+	    write_to_console(Player, Message),
+	    {reply, Reply, State}
+    end;
 handle_call({describe}, _From, State) ->
     {ok, RoomDescriptions} = emud_room:get_description(State#state.room),
     {ok, Directions} = emud_room:get_directions(State#state.room),
     {ok, Items} = emud_room:get_items(State#state.room),
     {ok, Players} = emud_room:get_players(State#state.room),
     Reply = {ok, RoomDescriptions, Directions, Players, Items},
-    %% FIXME - entering a room might fail if the room won't let us enter! 
     {reply, Reply, State}.
 
 
@@ -145,3 +152,15 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+write_to_console(_Player, Message) ->
+    io:write(standard_out, Message).
+
+
+leave_old_room(no_room, _Player) ->
+    ok;
+leave_old_room(Room, Player) ->
+    ok = emud_room:leave(Room, Player).
+
+
+    

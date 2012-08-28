@@ -15,7 +15,7 @@
 
 -export([get_description/1, get_directions/1, create_empty_room/0, 
 	 set_description/2, link_rooms/3, get_players/1, get_items/1,
-	 enter/2]).
+	 enter/2, leave/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -53,6 +53,9 @@ get_players(RoomPid) ->
 
 get_items(RoomPid) ->
     gen_server:call(RoomPid, {get_items}).
+
+leave(Room, Player) ->
+    gen_server:call(Room, {leave_room, Player}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -111,8 +114,13 @@ handle_call({set_description, Description}, _From, State) ->
     NewState = State#state{description = Description},
     {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
-    Reply = {ok, enter_room},
+    Reply = ok,
+    %% or {error, could_not_enter_room, display_message}.
     NewState = State#state{players = [Player| State#state.players]},
+    {reply, Reply, NewState};
+handle_call({leave_room, Player}, _From, State) ->
+    Reply = ok,
+    NewState = State#state{players = lists:delete(Player, State#state.players)},
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
     Reply = {ok, State#state.players},

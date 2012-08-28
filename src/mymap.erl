@@ -13,8 +13,11 @@ init() ->
     emud_room:link_rooms(StartRoom, WestRoom, west),
     emud_room:link_rooms(WestRoom, StartRoom, east),
 
-    {ok, Player} = emud_player:create_player(),
-    emud_player:enter(StartRoom, Player),
+    {ok, Player1} = emud_player:create_player(),
+    emud_player:enter(StartRoom, Player1),
 
-    [StartRoom, WestRoom, Player].
+    {ok, Player2} = emud_player:create_player(),
+    emud_player:enter(StartRoom, Player2),
+
+    [StartRoom, WestRoom, Player1, Player2].
 
