@@ -30,6 +30,19 @@ get_room_items_test() ->
     {ok, Room} = emud_room:create_empty_room(),
     {ok, _Items} = emud_room:get_items(Room).
 
+go_to_next_room_test() ->
+    {ok, EastRoom} = emud_room:create_empty_room(),
+    {ok, WestRoom} = emud_room:create_empty_room(),
+
+    emud_room:link_rooms(EastRoom, WestRoom, west),
+    emud_room:link_rooms(WestRoom, EastRoom, east),
+
+    {ok, P1} = emud_player:create_player(),
+
+    emud_player:enter(EastRoom, P1),
+    emud_player:go(P1, west).
+
+
 
 
     

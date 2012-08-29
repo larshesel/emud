@@ -187,4 +187,4 @@ code_change(_OldVsn, State, _Extra) ->
 
     
 add_room(OldState, ToPid, Direction) ->
-    OldState#state{directions=[{ToPid, Direction}| OldState#state.directions]}.
+    OldState#state{directions=[{Direction, ToPid}| OldState#state.directions]}.

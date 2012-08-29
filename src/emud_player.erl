@@ -13,7 +13,8 @@
 %% API
 -export([start_link/0]).
 
--export([create_player/0, enter/2, describe/1, get_directions/1]).
+-export([create_player/0, enter/2, describe/1, get_directions/1,
+	 go/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -36,6 +37,9 @@ describe(Player) ->
 
 get_directions(Player) ->
     gen_server:call(Player, {get_directions}).
+
+go(Player, Direction) ->
+    gen_server:call(Player, {go, Player, Direction}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -80,18 +84,11 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({enter_room, Room, Player}, _From, State) ->
-    Reply = emud_room:enter(Room, Player),
-    case Reply of 
-	ok ->
-	    NewState = State#state{room = Room},
-	    %% leave the old room
-	    leave_old_room(State#state.room, Player),
-	    {reply, Reply, NewState};
-	{error, could_not_enter_room, Message} ->
-	    %% we were not allowed to enter!
-	    write_to_console(Player, Message),
-	    {reply, Reply, State}
-    end;
+    enter_room(Room, Player, State);
+handle_call({go, Player, Direction}, _From, State) -> 
+    {ok, Directions} = emud_room:get_directions(State#state.room),
+    Room = proplists:get_value(Direction, Directions),
+    enter_room(Room, Player, State);
 handle_call({describe}, _From, State) ->
     {ok, RoomDescriptions} = emud_room:get_description(State#state.room),
     {ok, Directions} = emud_room:get_directions(State#state.room),
@@ -99,7 +96,6 @@ handle_call({describe}, _From, State) ->
     {ok, Players} = emud_room:get_players(State#state.room),
     Reply = {ok, RoomDescriptions, Directions, Players, Items},
     {reply, Reply, State}.
-
 
 %%--------------------------------------------------------------------
 %% @private
@@ -156,14 +152,25 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-write_to_console(_Player, Message) ->
-    io:write(standard_out, Message).
-
-
 leave_old_room(no_room, _Player) ->
     ok;
 leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
+
+enter_room(undefined, _, State) ->
+    {reply, {error, no_room_in_that_direction}, State};
+enter_room(Room, Player, State) ->
+    Reply = emud_room:enter(Room, Player),
+    case Reply of 
+	ok ->
+	    NewState = State#state{room = Room},
+	    %% leave the old room
+	    leave_old_room(State#state.room, Player),
+	    {reply, Reply, NewState};
+	{error, could_not_enter_room} ->
+	    %% we were not allowed to enter!
+	    {reply, Reply, State}
+    end.
 
     
