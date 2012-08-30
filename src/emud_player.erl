@@ -27,7 +27,8 @@
 %%%===================================================================
 
 create_player(Name) ->
-    start_link(Name).
+    {ok, _Pid} = start_link(Name),
+    {ok, Name}.
 
 enter(Room, Player) ->
     gen_server:call(Player, {enter_room, Room, Player}).

@@ -31,28 +31,29 @@
 %%%===================================================================
 
 create_empty_room(Name) ->
-    start_link(Name).
+    {ok, _Pid} = start_link(Name),
+    {ok, Name}.
 
-link_rooms(FromPid, ToPid, Direction) ->
-    gen_server:call(FromPid, {link_room, ToPid, Direction}).
+link_rooms(FromRoom, ToRoom, Direction) ->
+    gen_server:call(FromRoom, {link_room, ToRoom, Direction}).
 
-get_description(Pid) ->
-    gen_server:call(Pid, {get_description}).
+get_description(Room) ->
+    gen_server:call(Room, {get_description}).
 
-get_directions(Pid) ->
-    gen_server:call(Pid, {get_directions}).
+get_directions(Room) ->
+    gen_server:call(Room, {get_directions}).
 
-set_description(Pid, Description) ->
-    gen_server:call(Pid, {set_description, Description}).
+set_description(Room, Description) ->
+    gen_server:call(Room, {set_description, Description}).
 
-enter(RoomPid, Player) ->
-    gen_server:call(RoomPid, {enter_room, Player}).
+enter(Room, Player) ->
+    gen_server:call(Room, {enter_room, Player}).
 
-get_players(RoomPid) ->
-    gen_server:call(RoomPid, {get_players}).
+get_players(Room) ->
+    gen_server:call(Room, {get_players}).
 
-get_items(RoomPid) ->
-    gen_server:call(RoomPid, {get_items}).
+get_items(Room) ->
+    gen_server:call(Room, {get_items}).
 
 leave(Room, Player) ->
     gen_server:call(Room, {leave_room, Player}).

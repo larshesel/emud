@@ -27,7 +27,8 @@
 %%%===================================================================
 
 create_item(Name) ->
-    start_link(Name).
+    {ok, _Pid} = start_link(Name),
+    {ok, Name}.
 
 set_description(Item, Description) ->
     gen_server:call(Item, {set_description, Description}).
