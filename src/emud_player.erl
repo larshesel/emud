@@ -14,13 +14,13 @@
 -export([start_link/1]).
 
 -export([create_player/1, enter/2, describe/1, get_directions/1,
-	 go/2]).
+	 go/2, pickup/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--record(state, {room=no_room}).
+-record(state, {room=no_room, items=[]}).
 
 %%%===================================================================
 %%% API
@@ -30,8 +30,8 @@ create_player(Name) ->
     {ok, _Pid} = start_link(Name),
     {ok, Name}.
 
-enter(Room, Player) ->
-    gen_server:call(Player, {enter_room, Room, Player}).
+enter(Player, Room) ->
+    gen_server:call(Player, {enter_room, Player, Room}).
 
 describe(Player) ->
     gen_server:call(Player, {describe}).
@@ -41,6 +41,9 @@ get_directions(Player) ->
 
 go(Player, Direction) ->
     gen_server:call(Player, {go, Player, Direction}).
+
+pickup(Player, Item) ->
+    gen_server:call(Player, {pickup, Player, Item}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -86,12 +89,15 @@ init([]) ->
 %%--------------------------------------------------------------------
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
-handle_call({enter_room, Room, Player}, _From, State) ->
-    enter_room(Room, Player, State);
+handle_call({pickup, Player, Item}, _From, State) ->
+    Reply = pickup_item(Player, Item, State),
+    {reply, Reply, State};
+handle_call({enter_room, Player, Room}, _From, State) ->
+    enter_room(Player, Room, State);
 handle_call({go, Player, Direction}, _From, State) -> 
     {ok, Directions} = emud_room:get_directions(State#state.room),
     Room = proplists:get_value(Direction, Directions),
-    enter_room(Room, Player, State);
+    enter_room(Player, Room, State);
 handle_call({describe}, _From, State) ->
     {ok, RoomDescriptions} = emud_room:get_description(State#state.room),
     {ok, Directions} = emud_room:get_directions(State#state.room),
@@ -161,9 +167,23 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 
-enter_room(undefined, _, State) ->
+pickup_item(_Player, ItemName, State) ->
+    case emud_room:lookup_item(State#state.room, ItemName) of
+	{ok, [Item | _]} -> 
+	    Reply = emud_room:remove_item(State#state.room, Item),
+	    case Reply of
+		ok ->
+		    NewState = State#state{items = [Item | State#state.items]},
+		    {reply, Reply, NewState};
+		_ -> {error, could_not_pickup_item}
+	    end;
+	_ -> {error, could_not_pickup_item}
+    end.
+
+
+enter_room(_, undefined, State) ->
     {reply, {error, no_room_in_that_direction}, State};
-enter_room(Room, Player, State) ->
+enter_room(Player, Room, State) ->
     Reply = emud_room:enter(Room, Player),
     case Reply of 
 	ok ->

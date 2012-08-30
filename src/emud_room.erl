@@ -15,7 +15,7 @@
 
 -export([create_empty_room/1, get_description/1, get_directions/1, 
 	 set_description/2, link_rooms/3, get_players/1, get_items/1,
-	 enter/2, leave/2, add_item/2]).
+	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -60,6 +60,13 @@ leave(Room, Player) ->
 
 add_item(Room, Item) ->
     gen_server:call(Room, {add_item, Item}).
+
+remove_item(Room, Item) ->
+    gen_server:call(Room, {remove_item, Item}).
+
+lookup_item(Room, ItemName) ->
+    gen_server:call(Room, {lookup_item, ItemName}).
+
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -136,8 +143,15 @@ handle_call({get_items}, _From, State) ->
     {reply, Reply, State};
 handle_call({add_item, Item}, _From, State) ->
     Reply = ok,
-    {reply, Reply, State#state{items = [Item | State#state.items]}}.
-
+    {reply, Reply, State#state{items = [Item | State#state.items]}};
+handle_call({remove_item, Item}, _From, State) ->
+    Reply = ok,
+    NewState = State#state{items = lists:delete(Item, State#state.items)},
+    {reply, Reply, NewState};
+handle_call({lookup_item, ItemNameString}, _From, State) ->
+    Matches = [ X || X <- State#state.items, atom_to_list(X) == ItemNameString],
+    Reply = {ok, Matches},
+    {reply, Reply, State}.
     
 
 %%--------------------------------------------------------------------

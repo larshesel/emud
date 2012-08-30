@@ -28,8 +28,8 @@ place_two_players_in_a_room_test() ->
     {ok, P1} = emud_player:create_player(p1),
     {ok, P2} = emud_player:create_player(p2),
 
-    emud_player:enter(Room, P1),
-    emud_player:enter(Room, P2),
+    emud_player:enter(P1, Room),
+    emud_player:enter(P2, Room),
 
     gen_server:call(room, stop),
     gen_server:call(p1, stop),
@@ -49,7 +49,7 @@ go_to_next_room_test() ->
 
     {ok, P1} = emud_player:create_player(p1),
 
-    emud_player:enter(EastRoom, P1),
+    emud_player:enter(P1, EastRoom),
     emud_player:go(P1, west),
     
     gen_server:call(eastroom, stop),
@@ -65,12 +65,19 @@ add_item_to_room_test() ->
     gen_server:call(room, stop),
     gen_server:call(item, stop).
 
+pickup_item_test() ->
+    {ok, Room} = emud_room:create_empty_room(room),
+    {ok, Item} = emud_item:create_item(item),
+    ok = emud_room:add_item(Room, Item),
+    {ok, _Items} = emud_room:get_items(Room),
+    
+    {ok, P1} = emud_player:create_player(p1),
 
+    emud_player:enter(P1, Room),
+    emud_player:pickup(P1, "item"),
 
+    gen_server:call(room, stop),
+    gen_server:call(item, stop),
+    gen_server:call(p1, stop).
 
     
-    
-
-
-    
-
