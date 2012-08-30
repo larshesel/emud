@@ -10,11 +10,16 @@ init() ->
     {ok, WestRoom} = emud_room:create_empty_room(),
     ok = emud_room:set_description(WestRoom, "You're in a huge lobby with beatiful marble columns and floors."),
 
+
     emud_room:link_rooms(StartRoom, WestRoom, w),
     emud_room:link_rooms(WestRoom, StartRoom, e),
 
+    {ok, Poo} = emud_item:create_item(),
+    emud_item:set_description(Poo, "You try to pick up the dark, round object but it falls apart in your fingers. You are disgusted to realize it's a poo and someone has been eating peanuts."),
+
     {ok, Toilet} = emud_room:create_empty_room(),
     ok = emud_room:set_description(Toilet, "You're in the restroom. There's a toilet in the corner and a sink on the wall. It smells of poo."),
+    ok = emud_room:add_item(Toilet, Poo),
 
     emud_room:link_rooms(StartRoom, Toilet, n),
     emud_room:link_rooms(Toilet, StartRoom, s),

@@ -42,6 +42,11 @@ go_to_next_room_test() ->
     emud_player:enter(EastRoom, P1),
     emud_player:go(P1, west).
 
+add_item_to_room_test() ->
+    {ok, Room} = emud_room:create_empty_room(),
+    {ok, Item} = emud_item:create_item(),
+    ok = emud_room:add_item(Room, Item),
+    {ok, _Items} = emud_room:get_items(Room).
 
 
 

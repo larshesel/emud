@@ -26,6 +26,8 @@ parse_line(["go" | Args]) ->
     {go, parse_direction(Args)};
 parse_line(["describe"]) ->
     {describe, []};
+parse_line(["get" | Args]) ->
+    {get, Args};
 parse_line(_) ->
     {beg_your_pardon, []}.
 
@@ -56,8 +58,12 @@ do_command(Player, {Command, Args}) ->
 	go ->
 	    handle_go(Player, Args);
 	describe -> handle_describe(Player);
-	beg_your_pardon -> io:fwrite("You can't do that~n", [])
+	beg_your_pardon -> io:fwrite("You can't do that~n", []);
+	get -> handle_get(Player, Args)
     end.
+
+handle_get(_Player, _Args) ->
+    io:fwrite("You hurt your head - someone did not imlement that yet.~n").
 
 handle_go(_Player, no_such_direction) ->
     io:fwrite("You hurt your head - you can't go there.~n");
@@ -70,9 +76,10 @@ handle_go(Player, Direction) ->
 	end.
 
 handle_describe(Player) ->
-    {ok, RoomDescription, Directions, _Players, _Items} = emud_player:describe(Player),
+    {ok, RoomDescription, Directions, _Players, Items} = emud_player:describe(Player),
     io:fwrite("~s~n", [RoomDescription]),
-    io:fwrite("You can go ~p from here.~n", [format_directions(Directions)]).
+    io:fwrite("You can go ~p from here.~n", [format_directions(Directions)]),
+    io:fwrite("Items: ~p.~n", [Items]).
 
 format_directions(Directions) ->
     proplists:get_keys(Directions).

@@ -4,61 +4,33 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 12 Aug 2012 by Lars Hesel Christensen <>
+%%% Created : 30 Aug 2012 by Lars Hesel Christensen <>
 %%%-------------------------------------------------------------------
--module(emud_room).
+-module(emud_item).
 
 -behaviour(gen_server).
 
 %% API
 -export([start_link/0]).
 
--export([get_description/1, get_directions/1, create_empty_room/0, 
-	 set_description/2, link_rooms/3, get_players/1, get_items/1,
-	 enter/2, leave/2, add_item/2]).
+-export([create_item/0, set_description/2]).
+
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
-%%-define(SERVER, ?MODULE). 
-
--record(state, {room_name, directions=[], description, items=[], players=[]}).
-
+-record(state, {description}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-create_empty_room() ->
+create_item() ->
     start_link().
 
-link_rooms(FromPid, ToPid, Direction) ->
-    gen_server:call(FromPid, {link_room, ToPid, Direction}).
-
-get_description(Pid) ->
-    gen_server:call(Pid, {get_description}).
-
-get_directions(Pid) ->
-    gen_server:call(Pid, {get_directions}).
-
-set_description(Pid, Description) ->
-    gen_server:call(Pid, {set_description, Description}).
-
-enter(RoomPid, Player) ->
-    gen_server:call(RoomPid, {enter_room, Player}).
-
-get_players(RoomPid) ->
-    gen_server:call(RoomPid, {get_players}).
-
-get_items(RoomPid) ->
-    gen_server:call(RoomPid, {get_items}).
-
-leave(Room, Player) ->
-    gen_server:call(Room, {leave_room, Player}).
-
-add_item(Room, Item) ->
-    gen_server:call(Room, {add_item, Item}).
+set_description(Item, Description) ->
+    gen_server:call(Item, {set_description, Description}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -102,40 +74,10 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({get_directions}, _From, State) ->
-    Reply = {ok, State#state.directions},
-    {reply, Reply, State};
-handle_call({get_description}, _From, State) ->
-    Reply = {ok, State#state.description},
-    {reply, Reply, State};
-handle_call({link_room, ToPid, Direction}, _From, State) ->
-    Reply = ok,
-    NewState = add_room(State, ToPid, Direction),
-    {reply, Reply, NewState};
 handle_call({set_description, Description}, _From, State) ->
     Reply = ok,
     NewState = State#state{description = Description},
-    {reply, Reply, NewState};
-handle_call({enter_room, Player}, _From, State) ->
-    Reply = ok,
-    %% or {error, could_not_enter_room, display_message}.
-    NewState = State#state{players = [Player| State#state.players]},
-    {reply, Reply, NewState};
-handle_call({leave_room, Player}, _From, State) ->
-    Reply = ok,
-    NewState = State#state{players = lists:delete(Player, State#state.players)},
-    {reply, Reply, NewState};
-handle_call({get_players}, _From, State) ->
-    Reply = {ok, State#state.players},
-    {reply, Reply, State};
-handle_call({get_items}, _From, State) ->
-    Reply = {ok, State#state.items},
-    {reply, Reply, State};
-handle_call({add_item, Item}, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State#state{items = [Item | State#state.items]}}.
-
-    
+    {reply, Reply, NewState}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -191,7 +133,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
-    
-add_room(OldState, ToPid, Direction) ->
-    OldState#state{directions=[{Direction, ToPid}| OldState#state.directions]}.
