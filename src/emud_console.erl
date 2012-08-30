@@ -33,21 +33,21 @@ parse_direction([]) -> no_such_direction;
 parse_direction([Direction]) ->
     case Direction of 
 	"west" ->
-	    west;
+	    w;
 	"east" ->
-	    east;
+	    e;
 	"north" ->
-	    north;
+	    n;
 	"south" ->
-	    south;
+	    s;
 	"w" ->
-	    west;
+	    w;
 	"e" ->
-	    east;
+	    e;
 	"n" ->
-	    north;
+	    n;
 	"s" ->
-	    south;
+	    s;
 	_ -> no_such_direction
     end.
 
@@ -66,16 +66,17 @@ handle_go(Player, Direction) ->
 	{error, _} ->
 	    io:fwrite("You hurt your head - you can't go there.~n");
 	_ ->
-	    ok
+	    handle_describe(Player)
 	end.
 
 handle_describe(Player) ->
     {ok, RoomDescription, Directions, _Players, _Items} = emud_player:describe(Player),
     io:fwrite("~s~n", [RoomDescription]),
-    io:fwrite("You can go ~p from here.~n", format_directions(Directions)).
+    io:fwrite("You can go ~p from here.~n", [format_directions(Directions)]).
 
 format_directions(Directions) ->
-    Directions.
+    proplists:get_keys(Directions).
+
 
 
 		  
