@@ -11,9 +11,9 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
--export([create_player/0, enter/2, describe/1, get_directions/1,
+-export([create_player/1, enter/2, describe/1, get_directions/1,
 	 go/2]).
 
 %% gen_server callbacks
@@ -26,8 +26,8 @@
 %%% API
 %%%===================================================================
 
-create_player() ->
-    start_link().
+create_player(Name) ->
+    start_link(Name).
 
 enter(Room, Player) ->
     gen_server:call(Player, {enter_room, Room, Player}).
@@ -45,11 +45,11 @@ go(Player, Direction) ->
 %% @doc
 %% Starts the server
 %%
-%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
+%% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(Name) ->
+    gen_server:start_link({local, Name}, ?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -83,6 +83,8 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call(stop, _From, State) ->
+    {stop, normal, ok, State};
 handle_call({enter_room, Room, Player}, _From, State) ->
     enter_room(Room, Player, State);
 handle_call({go, Player, Direction}, _From, State) -> 

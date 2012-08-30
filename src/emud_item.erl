@@ -11,9 +11,9 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
--export([create_item/0, set_description/2]).
+-export([create_item/1, set_description/2]).
 
 
 %% gen_server callbacks
@@ -26,8 +26,8 @@
 %%% API
 %%%===================================================================
 
-create_item() ->
-    start_link().
+create_item(Name) ->
+    start_link(Name).
 
 set_description(Item, Description) ->
     gen_server:call(Item, {set_description, Description}).
@@ -36,11 +36,11 @@ set_description(Item, Description) ->
 %% @doc
 %% Starts the server
 %%
-%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
+%% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(Name) ->
+    gen_server:start_link({local, Name}, ?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -74,6 +74,8 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call(stop, _From, State) ->
+    {stop, normal, ok, State};
 handle_call({set_description, Description}, _From, State) ->
     Reply = ok,
     NewState = State#state{description = Description},
