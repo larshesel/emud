@@ -17,6 +17,7 @@ start(Player) ->
     State = #state{output_server = Server, player = Player},
     emud_console_output:start_link(Server),
     ok = emud_player:register_output_server(Player, Server),
+    handle_describe(State),
     loop(State).
 
 loop(State) ->
