@@ -80,4 +80,21 @@ pickup_item_test() ->
     gen_server:call(item, stop),
     gen_server:call(p1, stop).
 
+send_message_to_output_server_test() ->
+    {ok, _Pid} = emud_console_output:start_link(output_server),
+    emud_console_output:write_string(output_server, "test_string"),
+    gen_server:call(output_server, stop).
+
+
+send_message_to_output_server_via_player_test() ->
+    {ok, _P1} = emud_player:create_player(p1),
+    {ok, _Pid} = emud_console_output:start_link(output_server),
+    ok = emud_player:register_output_server(p1, output_server),
+    emud_player:send_msg(p1, "test_string"),
+
+    gen_server:call(p1, stop),
+    gen_server:call(output_server, stop).
+
+    
+
     

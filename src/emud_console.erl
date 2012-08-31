@@ -8,18 +8,23 @@
 %%%-------------------------------------------------------------------
 -module(emud_console).
 
-%% API
 -export([start/1]).
 
-start(Player) ->
-    loop(Player).
+-record(state, {output_server, player}).
 
-loop(Player) ->
+start(Player) ->
+    Server = list_to_atom("output_server_" ++ atom_to_list(Player)),
+    State = #state{output_server = Server, player = Player},
+    emud_console_output:start_link(Server),
+    ok = emud_player:register_output_server(Player, Server),
+    loop(State).
+
+loop(State) ->
     Line = io:get_line(standard_io, 'emud> '),
     ParsedLine = parse_line(string:tokens(string:strip(Line, right, $\n), " ")),
-    case do_command(Player, ParsedLine) of 
+    case do_command(State, ParsedLine) of 
 	quit -> ok;
-	_ -> loop(Player)
+	_ -> loop(State)
     end.
 
 parse_line(["quit"]) ->
@@ -40,49 +45,52 @@ parse_line(["get" | Args]) ->
 parse_line(_) ->
     {beg_your_pardon, []}.
 
-do_command(Player, {Command, Args}) ->
+do_command(State, {Command, Args}) ->
     case Command of 
 	quit -> quit;
 	go ->
-	    handle_go(Player, Args);
-	describe -> handle_describe(Player);
-	beg_your_pardon -> io:fwrite("You can't do that~n", []);
-	pickup -> handle_pickup(Player, Args);
-	help -> print_help();
-	inventory -> handle_inventory(Player)
+	    handle_go(State, Args);
+	describe -> handle_describe(State);
+	beg_your_pardon -> print(State, io_lib:format("You can't do that~n", []));
+	pickup -> handle_pickup(State, Args);
+	help -> print_help(State);
+	inventory -> handle_inventory(State)
     end.
 
-handle_inventory(Player) ->
-    {ok, Items} = emud_player:get_items(Player),
-    io:fwrite("You are carrying: ~p~n", [Items]).
+print(State, String) ->
+    emud_console_output:write_string(State#state.output_server, String).
 
-print_help() ->
-    io:fwrite("Available commands:~n"),
-    io:fwrite("  help~n"),
-    io:fwrite("  describe~n"),
-    io:fwrite("  go <direction>~n"),
-    io:fwrite("  pick up <item>~n"),
-    io:fwrite("  get <item>~n"),
-    io:fwrite("  inventory~n~n").
+handle_inventory(State) ->
+    {ok, Items} = emud_player:get_items(State#state.player),
+    print(State, io_lib:format("You are carrying: ~p~n", [Items])).
 
-handle_pickup(_, []) ->
-    io:fwrite("You can't pick that up.~n");
-handle_pickup(Player, [Args]) ->
-    case emud_player:pickup(Player, Args) of 
+print_help(State) ->
+    print(State, io_lib:format("Available commands:~n")),
+    print(State, io_lib:format("  help~n")),
+    print(State, io_lib:format("  describe~n")),
+    print(State, io_lib:format("  go <direction>~n")),
+    print(State, io_lib:format("  pick up <item>~n")),
+    print(State, io_lib:format("  get <item>~n")),
+    print(State, io_lib:format("  inventory~n~n")).
+
+handle_pickup(State, []) ->
+    print(State, io_lib:format("You can't pick that up.~n"));
+handle_pickup(State, [Args]) ->
+    case emud_player:pickup(State#state.player, Args) of 
 	{error, _} ->
-	    io:fwrite("What do you want to pick up?~n");
+	    print(State, io_lib:format("What do you want to pick up?~n"));
         _ ->
-	    io:fwrite("You pick up ~s.~n", [Args])
+	    print(State, io_lib:format("You pick up ~s.~n", [Args]))
 	end.
 
-handle_go(_Player, no_such_direction) ->
-    io:fwrite("You hurt your head - you can't go there.~n");
-handle_go(Player, Direction) ->
-    case emud_player:go(Player, Direction) of 
+handle_go(State, no_such_direction) ->
+    print(State, io_lib:fwrite("You hurt your head - you can't go there.~n"));
+handle_go(State, Direction) ->
+    case emud_player:go(State#state.player, Direction) of 
 	{error, _} ->
-	    io:fwrite("You hurt your head - you can't go there.~n");
+	    print(State, io_lib:fwrite("You hurt your head - you can't go there.~n"));
 	_ ->
-	    handle_describe(Player)
+	    handle_describe(State)
 	end.
 
 parse_direction([]) -> no_such_direction;
@@ -99,12 +107,12 @@ parse_direction([Direction]) ->
 	_ -> no_such_direction
     end.
 
-handle_describe(Player) ->
-    {ok, RoomDescription, Directions, Players, Items} = emud_player:describe(Player),
-    io:fwrite("~s~n", [RoomDescription]),
-    io:fwrite("You can go ~p from here.~n", [format_directions(Directions)]),
-    io:fwrite("~p~n", [[ X || X<-Players, X /= Player]]),
-    io:fwrite("Items: ~p.~n", [Items]).
+handle_describe(State) ->
+    {ok, RoomDescription, Directions, Players, Items} = emud_player:describe(State#state.player),
+    print(State, io_lib:format("~s~n", [RoomDescription])),
+    print(State, io_lib:format("You can go ~p from here.~n", [format_directions(Directions)])),
+    print(State, io_lib:format("~p~n", [[ X || X<-Players, X /= State#state.player]])),
+    print(State, io_lib:format("Items: ~p.~n", [Items])).
 
 format_directions(Directions) ->
     proplists:get_keys(Directions).
