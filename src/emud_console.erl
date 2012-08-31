@@ -17,8 +17,13 @@ start(Player) ->
 loop(Player) ->
     Line = io:get_line(standard_io, 'emud> '),
     ParsedLine = parse_line(string:tokens(string:strip(Line, right, $\n), " ")),
-    do_command(Player, ParsedLine),
-    loop(Player).
+    case do_command(Player, ParsedLine) of 
+	quit -> ok;
+	_ -> loop(Player)
+    end.
+
+parse_line(["quit"]) ->
+    {quit, []};
 
 parse_line(["help"]) ->
     {help, []};
@@ -37,6 +42,7 @@ parse_line(_) ->
 
 do_command(Player, {Command, Args}) ->
     case Command of 
+	quit -> quit;
 	go ->
 	    handle_go(Player, Args);
 	describe -> handle_describe(Player);
@@ -92,9 +98,10 @@ parse_direction([Direction]) ->
     end.
 
 handle_describe(Player) ->
-    {ok, RoomDescription, Directions, _Players, Items} = emud_player:describe(Player),
+    {ok, RoomDescription, Directions, Players, Items} = emud_player:describe(Player),
     io:fwrite("~s~n", [RoomDescription]),
     io:fwrite("You can go ~p from here.~n", [format_directions(Directions)]),
+    io:fwrite("~p~n", [[ X || X<-Players, X /= Player]]),
     io:fwrite("Items: ~p.~n", [Items]).
 
 format_directions(Directions) ->
