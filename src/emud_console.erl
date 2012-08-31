@@ -20,6 +20,10 @@ loop(Player) ->
     do_command(Player, ParsedLine),
     loop(Player).
 
+parse_line(["help"]) ->
+    {help, []};
+parse_line(["inventory"]) ->
+    {inventory, []};
 parse_line(["go" | Args]) ->
     {go, parse_direction(Args)};
 parse_line(["describe"]) ->
@@ -37,8 +41,23 @@ do_command(Player, {Command, Args}) ->
 	    handle_go(Player, Args);
 	describe -> handle_describe(Player);
 	beg_your_pardon -> io:fwrite("You can't do that~n", []);
-	pickup -> handle_pickup(Player, Args)
+	pickup -> handle_pickup(Player, Args);
+	help -> print_help();
+	inventory -> handle_inventory(Player)
     end.
+
+handle_inventory(Player) ->
+    {ok, Items} = emud_player:get_items(Player),
+    io:fwrite("You are carrying: ~p~n", [Items]).
+
+print_help() ->
+    io:fwrite("Available commands:~n"),
+    io:fwrite("  help~n"),
+    io:fwrite("  describe~n"),
+    io:fwrite("  go <direction>~n"),
+    io:fwrite("  pick up <item>~n"),
+    io:fwrite("  get <item>~n"),
+    io:fwrite("  inventory~n~n").
 
 handle_pickup(Player, [Args]) ->
     case emud_player:pickup(Player, Args) of 
@@ -61,22 +80,14 @@ handle_go(Player, Direction) ->
 parse_direction([]) -> no_such_direction;
 parse_direction([Direction]) ->
     case Direction of 
-	"west" ->
-	    w;
-	"east" ->
-	    e;
-	"north" ->
-	    n;
-	"south" ->
-	    s;
-	"w" ->
-	    w;
-	"e" ->
-	    e;
-	"n" ->
-	    n;
-	"s" ->
-	    s;
+	"west" -> w;
+	"east" -> e;
+	"north" -> n;
+	"south" -> s;
+	"w" -> w;
+	"e" -> e;
+	"n" -> n;
+	"s" -> s;
 	_ -> no_such_direction
     end.
 

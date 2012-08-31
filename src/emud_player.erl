@@ -14,7 +14,7 @@
 -export([start_link/1]).
 
 -export([create_player/1, enter/2, describe/1, get_directions/1,
-	 go/2, pickup/2]).
+	 go/2, pickup/2, get_items/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -44,6 +44,9 @@ go(Player, Direction) ->
 
 pickup(Player, Item) ->
     gen_server:call(Player, {pickup, Player, Item}).
+
+get_items(Player) ->
+    gen_server:call(Player, {get_items}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -90,8 +93,7 @@ init([]) ->
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({pickup, Player, Item}, _From, State) ->
-    Reply = pickup_item(Player, Item, State),
-    {reply, Reply, State};
+    pickup_item(Player, Item, State);
 handle_call({enter_room, Player, Room}, _From, State) ->
     enter_room(Player, Room, State);
 handle_call({go, Player, Direction}, _From, State) -> 
@@ -104,7 +106,11 @@ handle_call({describe}, _From, State) ->
     {ok, Items} = emud_room:get_items(State#state.room),
     {ok, Players} = emud_room:get_players(State#state.room),
     Reply = {ok, RoomDescriptions, Directions, Players, Items},
+    {reply, Reply, State};
+handle_call({get_items}, _From, State) ->
+    Reply = {ok, State#state.items},
     {reply, Reply, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -175,9 +181,9 @@ pickup_item(_Player, ItemName, State) ->
 		ok ->
 		    NewState = State#state{items = [Item | State#state.items]},
 		    {reply, Reply, NewState};
-		_ -> {error, could_not_pickup_item}
+		_ -> {reply, {error, could_not_pickup_item}, State}
 	    end;
-	_ -> {error, could_not_pickup_item}
+	_ -> {reply, {error, could_not_pickup_item}, State}
     end.
 
 
