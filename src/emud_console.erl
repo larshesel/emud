@@ -23,7 +23,9 @@ loop(State) ->
     Line = io:get_line(standard_io, 'emud> '),
     ParsedLine = parse_line(string:tokens(string:strip(Line, right, $\n), " ")),
     case do_command(State, ParsedLine) of 
-	quit -> ok;
+	quit -> 
+	    gen_server:call(State#state.output_server, stop),
+	    ok;
 	_ -> loop(State)
     end.
 

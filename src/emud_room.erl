@@ -15,7 +15,8 @@
 
 -export([create_empty_room/1, get_description/1, get_directions/1, 
 	 set_description/2, link_rooms/3, get_players/1, get_items/1,
-	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2]).
+	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
+	 msg_room/3]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -66,6 +67,10 @@ remove_item(Room, Item) ->
 
 lookup_item(Room, ItemName) ->
     gen_server:call(Room, {lookup_item, ItemName}).
+
+%% CASTS
+msg_room(Room, FromPlayer, String) ->
+    gen_server:cast(Room, {message_room, FromPlayer, String}).
 
 
 %%--------------------------------------------------------------------
@@ -128,12 +133,14 @@ handle_call({set_description, Description}, _From, State) ->
     {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
     Reply = ok,
+    handle_cast({message_room, Player, io_lib:format("~p entered the room.~n", [Player])}, State),
     %% or {error, could_not_enter_room, display_message}.
     NewState = State#state{players = [Player| State#state.players]},
     {reply, Reply, NewState};
 handle_call({leave_room, Player}, _From, State) ->
     Reply = ok,
     NewState = State#state{players = lists:delete(Player, State#state.players)},
+    handle_cast({message_room, Player, io_lib:format("~p left the room.~n", [Player])}, State),
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
     Reply = {ok, State#state.players},
@@ -164,7 +171,8 @@ handle_call({lookup_item, ItemNameString}, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(_Msg, State) ->
+handle_cast({message_room, FromPlayer, String}, State) ->
+    [emud_player:send_msg(X, String) || X<-State#state.players, X /= FromPlayer],
     {noreply, State}.
 
 %%--------------------------------------------------------------------
