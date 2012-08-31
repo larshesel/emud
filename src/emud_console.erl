@@ -30,9 +30,10 @@ loop(State) ->
 	_ -> loop(State)
     end.
 
+parse_line([]) ->
+    {nop, []};
 parse_line(["quit"]) ->
     {quit, []};
-
 parse_line(["help"]) ->
     {help, []};
 parse_line(["inventory"]) ->
@@ -50,6 +51,7 @@ parse_line(_) ->
 
 do_command(State, {Command, Args}) ->
     case Command of 
+	nop -> ok;
 	quit -> quit;
 	go ->
 	    handle_go(State, Args);
