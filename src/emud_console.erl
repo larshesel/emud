@@ -65,10 +65,12 @@ print_help() ->
     io:fwrite("  get <item>~n"),
     io:fwrite("  inventory~n~n").
 
+handle_pickup(_, []) ->
+    io:fwrite("You can't pick that up.~n");
 handle_pickup(Player, [Args]) ->
     case emud_player:pickup(Player, Args) of 
 	{error, _} ->
-	    io:fwrite("You can't pick that up.~n");
+	    io:fwrite("What do you want to pick up?~n");
         _ ->
 	    io:fwrite("You pick up ~s.~n", [Args])
 	end.
