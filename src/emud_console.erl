@@ -46,6 +46,8 @@ parse_line(["pick", "up" | Args]) ->
     {pickup, Args};
 parse_line(["get" | Args]) ->
     {pickup, Args};
+parse_line(["drop" | Args]) ->
+    {drop, Args};
 parse_line(_) ->
     {beg_your_pardon, []}.
 
@@ -53,6 +55,7 @@ do_command(State, {Command, Args}) ->
     case Command of 
 	nop -> ok;
 	quit -> quit;
+	drop -> handle_drop(State, Args);
 	go ->
 	    handle_go(State, Args);
 	describe -> handle_describe(State);
@@ -65,6 +68,17 @@ do_command(State, {Command, Args}) ->
 print(State, String) ->
     emud_console_output:write_string(State#state.output_server, String).
 
+handle_drop(State, []) ->
+    print(State, io_lib:format("You can't drop that.~n"));
+handle_drop(State, [Item]) ->
+    case emud_player:drop(State#state.player, list_to_atom(Item)) of 
+	{error, _} ->
+	    print(State, io_lib:format("What to drop?~n"));
+        _ ->
+	    print(State, io_lib:format("You drop ~s.~n", [Item]))
+	end.
+
+    
 handle_inventory(State) ->
     {ok, Items} = emud_player:get_items(State#state.player),
     print(State, io_lib:format("You are carrying: ~p~n", [Items])).

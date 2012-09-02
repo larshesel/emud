@@ -14,7 +14,7 @@
 -export([start_link/1, register_output_server/2, send_msg/2]).
 
 -export([create_player/1, enter/2, describe/1, get_directions/1,
-	 go/2, pickup/2, get_items/1]).
+	 go/2, pickup/2, get_items/1, drop/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -53,6 +53,9 @@ register_output_server(Player, Server) ->
 
 send_msg(Player, String) ->
     gen_server:cast(Player, {send_message, String}).
+
+drop(Player, Item) ->
+    gen_server:call(Player, {drop, Item}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -118,7 +121,12 @@ handle_call({get_items}, _From, State) ->
     {reply, Reply, State};
 handle_call({register_output_server, Server}, _From, State) ->
     Reply = ok,
-    {reply, Reply, State#state{output_server = Server}}.
+    {reply, Reply, State#state{output_server = Server}};
+handle_call({drop, Item}, _From, State) ->
+    NewState = State#state{items = lists:delete(Item, State#state.items)},
+    emud_room:add_item(State#state.room, Item),
+    Reply = ok,
+    {reply, Reply, NewState}.
 
 
 %%--------------------------------------------------------------------
