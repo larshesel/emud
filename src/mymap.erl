@@ -3,6 +3,10 @@
 -export([init/0]).
 
 
+player_childspec(Name) ->
+    {Name, {emud_player, start_link, [Name]},permanent, 2000, worker, [emud_player]}.
+    
+
 init() ->
     {ok, StartRoom} = emud_room:create_empty_room(startroom),
     ok = emud_room:set_description(StartRoom, "You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around."),
@@ -26,13 +30,11 @@ init() ->
     emud_room:link_rooms(StartRoom, Toilet, n),
     emud_room:link_rooms(Toilet, StartRoom, s),
 
+    supervisor:start_child(emud_player_sup, player_childspec(player1)),
+    emud_player:enter(player1, StartRoom),
 
-    {ok, Player1} = emud_player:create_player(player1),
-    emud_player:enter(Player1, StartRoom),
+    supervisor:start_child(emud_player_sup, player_childspec(player2)),
+    emud_player:enter(player2, StartRoom),
 
-    {ok, Player2} = emud_player:create_player(player2),
-    emud_player:enter(Player2, StartRoom),
-
-    %% [StartRoom, WestRoom, Player1, Player2],
-    emud_console:start(Player1).
+    emud_console:start(player1).
 
