@@ -48,6 +48,8 @@ parse_line(["get" | Args]) ->
     {pickup, Args};
 parse_line(["drop" | Args]) ->
     {drop, Args};
+parse_line(["crash"]) ->
+    {crash, []};
 parse_line(_) ->
     {beg_your_pardon, []}.
 
@@ -62,11 +64,15 @@ do_command(State, {Command, Args}) ->
 	beg_your_pardon -> print(State, io_lib:format("You can't do that~n", []));
 	pickup -> handle_pickup(State, Args);
 	help -> print_help(State);
-	inventory -> handle_inventory(State)
+	inventory -> handle_inventory(State);
+	crash -> handle_crash(State)
     end.
 
 print(State, String) ->
     emud_console_output:write_string(State#state.output_server, String).
+
+handle_crash(State) ->
+    emud_player:crash(State#state.player).
 
 handle_drop(State, []) ->
     print(State, io_lib:format("You can't drop that.~n"));
