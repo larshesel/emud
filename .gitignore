@@ -2,3 +2,6 @@
 *~
 .eunit
 ebin/*.beam
+emud.log
+erl_crash.dump
+ebin
