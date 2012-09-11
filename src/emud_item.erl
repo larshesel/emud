@@ -13,7 +13,7 @@
 %% API
 -export([start_link/1]).
 
--export([create_item/1, set_description/2, get_description/1,
+-export([set_description/2, get_description/1,
 	 set_short_description/2, get_short_description/1]).
 
 
@@ -26,10 +26,6 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-
-create_item(Name) ->
-    {ok, _Pid} = start_link(Name),
-    {ok, Name}.
 
 set_description(Item, Description) ->
     gen_server:call(Item, {set_description, Description}).

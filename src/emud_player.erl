@@ -13,7 +13,7 @@
 %% API
 -export([start_link/1, register_output_server/2, send_msg/2]).
 
--export([create_player/1, enter/2, describe/1, get_directions/1,
+-export([enter/2, describe/1, get_directions/1,
 	 go/2, pickup/2, get_items/1, drop/2]).
 
 %% DEBUG
@@ -28,10 +28,6 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-
-create_player(Name) ->
-    {ok, _Pid} = start_link(Name),
-    {ok, Name}.
 
 enter(Player, Room) ->
     gen_server:call(Player, {enter_room, Player, Room}).

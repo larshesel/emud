@@ -14,10 +14,8 @@ init() ->
     {ok, _WestRoom} = supervisor:start_child(emud_room_sup, childspec_room(westroom)),
     ok = emud_room:set_description(westroom, "You're in a huge lobby with beatiful marble columns and floors."),
 
-
     emud_room:link_rooms(startroom, westroom, w),
     emud_room:link_rooms(westroom, startroom, e),
-
 
     {ok, _RestRoom} = supervisor:start_child(emud_room_sup, childspec_room(restroom)),
     ok = emud_room:set_description(restroom, "You're in the restroom. There's a toilet in the corner and a sink on the wall. It smells of poo."),

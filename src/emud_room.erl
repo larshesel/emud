@@ -13,7 +13,7 @@
 %% API
 -export([start_link/1]).
 
--export([create_empty_room/1, get_description/1, get_directions/1, 
+-export([get_description/1, get_directions/1, 
 	 set_description/2, link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
 	 msg_room/3]).
@@ -30,10 +30,6 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
-
-create_empty_room(Name) ->
-    {ok, _Pid} = start_link(Name),
-    {ok, Name}.
 
 link_rooms(FromRoom, ToRoom, Direction) ->
     gen_server:call(FromRoom, {link_room, ToRoom, Direction}).
