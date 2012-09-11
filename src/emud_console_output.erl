@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1]).
+-export([start_link/0]).
 
 -export([write_string/2]).
 
@@ -32,11 +32,11 @@ write_string(Server, String) ->
 %% @doc
 %% Starts the server
 %%
-%% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
+%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(Name) ->
-    gen_server:start_link({local, Name}, ?MODULE, [], []).
+start_link() ->
+    gen_server:start_link(?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks

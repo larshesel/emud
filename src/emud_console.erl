@@ -13,10 +13,9 @@
 -record(state, {output_server, player}).
 
 start(Player) ->
-    Server = list_to_atom("output_server_" ++ atom_to_list(Player)),
-    State = #state{output_server = Server, player = Player},
-    emud_console_output:start_link(Server),
-    ok = emud_player:register_output_server(Player, Server),
+    {ok, OutputConsole} = emud_console_output:start_link(),
+    State = #state{output_server = OutputConsole, player = Player},
+    ok = emud_player:register_output_server(Player, OutputConsole),
     handle_describe(State),
     loop(State).
 

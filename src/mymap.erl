@@ -24,11 +24,11 @@ init() ->
     emud_room:link_rooms(startroom, restroom, n),
     emud_room:link_rooms(restroom, startroom, s),
 
-    supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player1)),
-    emud_player:enter(player1, startroom),
+    {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player1)),
+    emud_player:enter(P1, startroom),
 
-    supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player2)),
-    emud_player:enter(player2, startroom),
+    {ok, P2} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player2)),
+    emud_player:enter(P2, startroom),
 
-    emud_console:start(player1).
+    emud_console:start(P1).
 
