@@ -4,11 +4,10 @@
 -define(setup(F), {setup, fun start/0, fun stop/1, F}).
 
 start() ->
-    emud:start(),
-    emud.
+    application:start(emud).
 
 stop(_) ->
-    emud:stop().
+    application:stop(emud).
 
 create_player_test_() ->
    {"A player can be created",
