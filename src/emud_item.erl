@@ -13,28 +13,21 @@
 %% API
 -export([start_link/1]).
 
--export([set_description/2, get_description/1,
-	 set_short_description/2, get_short_description/1]).
+-export([get_description/1, get_short_description/1]).
 
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--record(state, {description, short_description}).
+-include("emud_item.hrl").
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-set_description(Item, Description) ->
-    gen_server:call(Item, {set_description, Description}).
-
 get_description(Item) ->
     gen_server:call(Item, {get_description}).
-
-set_short_description(Item, Description) ->
-    gen_server:call(Item, {set_short_description, Description}).
 
 get_short_description(Item) ->
     gen_server:call(Item, {get_short_description}).
@@ -46,8 +39,8 @@ get_short_description(Item) ->
 %% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(_Name) ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(State) ->
+    gen_server:start_link(?MODULE, [State], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -65,7 +58,10 @@ start_link(_Name) ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+    {ok, #item_state{}};
+init([State]) ->
+    {ok, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -84,19 +80,11 @@ init([]) ->
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({get_description}, _From, State) ->
-    Reply = {ok, State#state.description},
+    Reply = {ok, State#item_state.description},
     {reply, Reply, State};
 handle_call({get_short_description}, _From, State) ->
-    Reply = {ok, State#state.short_description},
-    {reply, Reply, State};
-handle_call({set_description, Description}, _From, State) ->
-    Reply = ok,
-    NewState = State#state{description = Description},
-    {reply, Reply, NewState};
-handle_call({set_short_description, Description}, _From, State) ->
-    Reply = ok,
-    NewState = State#state{short_description = Description},
-    {reply, Reply, NewState}.
+    Reply = {ok, State#item_state.short_description},
+    {reply, Reply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
