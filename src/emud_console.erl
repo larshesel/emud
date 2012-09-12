@@ -136,7 +136,8 @@ handle_describe(State) ->
     print(State, io_lib:format("~s~n", [RoomDescription])),
     print(State, io_lib:format("You can go ~p from here.~n", [format_directions(Directions)])),
     print(State, io_lib:format("~p~n", [[ X || X<-Players, X /= State#state.player]])),
-    print(State, io_lib:format("Items: ~p.~n", [get_item_descriptions(ItemPids)])).
+    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(ItemPids)].
+
 
 get_item_descriptions(ItemPids) ->
     [ get_text(emud_item:get_short_description(X)) || X <- ItemPids ].
