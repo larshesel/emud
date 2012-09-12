@@ -27,6 +27,15 @@ create_room(_) ->
     [?_assert(erlang:is_process_alive(RoomPid)),
      ?_assert(erlang:is_process_alive(whereis(emud_room_sup)))].
 
+create_item_test_() ->
+   {"An item can be created",
+      ?setup(fun create_item/1)}.
+
+create_item(_) ->
+    {ok, ItemPid} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(poo)),
+    [?_assert(erlang:is_process_alive(ItemPid)),
+     ?_assert(erlang:is_process_alive(whereis(emud_item_sup)))].
+
 %% create_linked_rooms_test() ->
 %%     {ok, EastRoom} = emud_room:create_empty_room(eastroom),
 %%     {ok, WestRoom} = emud_room:create_empty_room(westroom),
