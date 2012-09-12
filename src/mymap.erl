@@ -18,6 +18,8 @@ init() ->
 
     {ok, Poo} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(poo)),
     ok = emud_room:add_item(RestRoom, Poo),
+    {ok, Chair} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(chair)),
+    ok = emud_room:add_item(RestRoom, Chair),
 
     emud_room:link_rooms(StartRoom, RestRoom, n),
     emud_room:link_rooms(RestRoom, StartRoom, s),

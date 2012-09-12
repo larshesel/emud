@@ -132,11 +132,17 @@ parse_direction([Direction]) ->
     end.
 
 handle_describe(State) ->
-    {ok, RoomDescription, Directions, Players, Items} = emud_player:describe(State#state.player),
+    {ok, RoomDescription, Directions, Players, ItemPids} = emud_player:describe(State#state.player),
     print(State, io_lib:format("~s~n", [RoomDescription])),
     print(State, io_lib:format("You can go ~p from here.~n", [format_directions(Directions)])),
     print(State, io_lib:format("~p~n", [[ X || X<-Players, X /= State#state.player]])),
-    print(State, io_lib:format("Items: ~p.~n", [Items])).
+    print(State, io_lib:format("Items: ~p.~n", [get_item_descriptions(ItemPids)])).
+
+get_item_descriptions(ItemPids) ->
+    [ get_text(emud_item:get_short_description(X)) || X <- ItemPids ].
+
+get_text({ok, Text}) ->
+    Text.
 
 format_directions(Directions) ->
     proplists:get_keys(Directions).
