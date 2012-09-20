@@ -74,11 +74,11 @@ handle_crash(State) ->
     emud_player:crash(State#state.player).
 
 handle_drop(State, []) ->
-    print(State, io_lib:format("You can't drop that.~n"));
+    print(State, io_lib:format("You can't drop that.~n", []));
 handle_drop(State, [IN]) ->
     case emud_player:drop(State#state.player, IN) of 
 	{error, _} ->
-	    print(State, io_lib:format("What to drop?~n"));
+	    print(State, io_lib:format("What to drop?~n", []));
         _ ->
 	    print(State, io_lib:format("You drop ~s.~n", [IN]))
 	end.
@@ -86,20 +86,25 @@ handle_drop(State, [IN]) ->
     
 handle_inventory(State) ->
     {ok, Items} = emud_player:get_items(State#state.player),
-    print(State, io_lib:format("You are carrying: ~n",[])),
-    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(Items)].
+    case Items of 
+	[] -> 
+	    print(State, io_lib:format("You are carrying nothing.~n",[]));
+	_ ->
+	    print(State, io_lib:format("You are carrying: ~n",[])),
+	    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(Items)]
+    end.
 
 print_help(State) ->
-    print(State, io_lib:format("Available commands:~n")),
-    print(State, io_lib:format("  help~n")),
-    print(State, io_lib:format("  describe~n")),
-    print(State, io_lib:format("  go <direction>~n")),
-    print(State, io_lib:format("  pick up <item>~n")),
-    print(State, io_lib:format("  get <item>~n")),
-    print(State, io_lib:format("  inventory~n~n")).
+    print(State, io_lib:format("Available commands:~n", [])),
+    print(State, io_lib:format("  help~n", [])),
+    print(State, io_lib:format("  describe~n", [])),
+    print(State, io_lib:format("  go <direction>~n", [])),
+    print(State, io_lib:format("  pick up <item>~n", [])),
+    print(State, io_lib:format("  get <item>~n", [])),
+    print(State, io_lib:format("  inventory~n~n", [])).
 
 handle_pickup(State, []) ->
-    print(State, io_lib:format("You can't pick that up.~n"));
+    print(State, io_lib:format("You can't pick that up.~n", []));
 handle_pickup(State, [Args]) ->
     case emud_player:pickup(State#state.player, Args) of 
 	{error, _} ->
