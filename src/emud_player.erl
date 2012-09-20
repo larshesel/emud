@@ -199,8 +199,10 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 
-pickup_item(_Player, ItemName, State) ->
-    case emud_room:lookup_item(State#state.room, ItemName) of
+
+
+pickup_item(_Player, ItemInteractionName, State) ->
+    case emud_room:lookup_item_by_interaction_name(State#state.room, ItemInteractionName) of
 	{ok, [Item | _]} -> 
 	    Reply = emud_room:remove_item(State#state.room, Item),
 	    case Reply of

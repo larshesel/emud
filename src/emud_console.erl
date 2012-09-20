@@ -86,7 +86,8 @@ handle_drop(State, [Item]) ->
     
 handle_inventory(State) ->
     {ok, Items} = emud_player:get_items(State#state.player),
-    print(State, io_lib:format("You are carrying: ~p~n", [Items])).
+    print(State, io_lib:format("You are carrying: ~n",[])),
+    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(Items)].
 
 print_help(State) ->
     print(State, io_lib:format("Available commands:~n")),
@@ -102,7 +103,7 @@ handle_pickup(State, []) ->
 handle_pickup(State, [Args]) ->
     case emud_player:pickup(State#state.player, Args) of 
 	{error, _} ->
-	    print(State, io_lib:format("What do you want to pick up?~n"));
+	    print(State, io_lib:format("What do you want to pick up?~n", []));
         _ ->
 	    print(State, io_lib:format("You pick up ~s.~n", [Args]))
 	end.

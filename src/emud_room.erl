@@ -16,7 +16,7 @@
 -export([get_description/1, get_directions/1, 
 	 set_description/2, link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
-	 msg_room/3]).
+	 msg_room/3, lookup_item_by_interaction_name/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -63,6 +63,9 @@ remove_item(Room, Item) ->
 
 lookup_item(Room, ItemName) ->
     gen_server:call(Room, {lookup_item, ItemName}).
+
+lookup_item_by_interaction_name(Room, IN) ->
+    gen_server:call(Room, {lookup_item_by_in, IN}).
 
 %% CASTS
 msg_room(Room, FromPlayer, String) ->
@@ -151,8 +154,12 @@ handle_call({remove_item, Item}, _From, State) ->
     Reply = ok,
     NewState = State#state{items = lists:delete(Item, State#state.items)},
     {reply, Reply, NewState};
-handle_call({lookup_item, ItemNameString}, _From, State) ->
-    Matches = [ X || X <- State#state.items, atom_to_list(X) == ItemNameString],
+handle_call({lookup_item_by_in, IN}, _From, State) ->
+    Matches = lists:filter(fun(Pid) -> 
+		 		   {ok, Names} = emud_item:get_interaction_names(Pid),
+				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
+		 	   end,
+		 State#state.items),
     Reply = {ok, Matches},
     {reply, Reply, State}.
     

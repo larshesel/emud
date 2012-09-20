@@ -13,7 +13,7 @@
 %% API
 -export([start_link/1]).
 
--export([get_description/1, get_short_description/1]).
+-export([get_description/1, get_short_description/1, get_interaction_names/1]).
 
 
 %% gen_server callbacks
@@ -31,6 +31,9 @@ get_description(Item) ->
 
 get_short_description(Item) ->
     gen_server:call(Item, {get_short_description}).
+
+get_interaction_names(Item) ->
+    gen_server:call(Item, {get_interaction_names}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -84,7 +87,10 @@ handle_call({get_description}, _From, State) ->
     {reply, Reply, State};
 handle_call({get_short_description}, _From, State) ->
     Reply = {ok, State#item_state.short_description},
-    {reply, Reply, State}.
+    {reply, Reply, State};
+handle_call({get_interaction_names}, _From, State) ->
+    {reply, {ok, State#item_state.interaction_names}, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private

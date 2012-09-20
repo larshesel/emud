@@ -12,10 +12,12 @@ create_item_state(poo) ->
     S1 = emud_create_item:create_state(),
     S2 = emud_create_item:set_short_description(S1, "A dark oblong object."),
     S3 = emud_create_item:set_description(S2, "You pick up the dark, round object, it feels soft and slightly sticky. You are disgusted to realize it's a poo and someone has been eating peanuts."),
-    S3;
+    S4 = emud_create_item:set_interaction_names(S3, ["object", "poo"]),
+    S4;
 create_item_state(chair) ->
     S1 = emud_create_item:create_state(),
     S2 = emud_create_item:set_short_description(S1, "A chair."),
     S3 = emud_create_item:set_description(S2, "A dingy looking chair, made of driftwood."),
-    S3.
+    S4 = emud_create_item:set_interaction_names(S3, ["chair"]),
+    S4.
 
