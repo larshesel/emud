@@ -109,11 +109,11 @@ handle_pickup(State, [Args]) ->
 	end.
 
 handle_go(State, no_such_direction) ->
-    print(State, io_lib:fwrite("You hurt your head - you can't go there.~n"));
+    print(State, io_lib:format("You hurt your head - you can't go there.~n", []));
 handle_go(State, Direction) ->
     case emud_player:go(State#state.player, Direction) of 
 	{error, _} ->
-	    print(State, io_lib:fwrite("You hurt your head - you can't go there.~n"));
+	    print(State, io_lib:format("You hurt your head - you can't go there.~n", []));
 	_ ->
 	    handle_describe(State)
 	end.
