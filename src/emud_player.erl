@@ -124,11 +124,19 @@ handle_call({get_items}, _From, State) ->
 handle_call({register_output_server, Server}, _From, State) ->
     Reply = ok,
     {reply, Reply, State#state{output_server = Server}};
-handle_call({drop, Item}, _From, State) ->
-    NewState = State#state{items = lists:delete(Item, State#state.items)},
-    emud_room:add_item(State#state.room, Item),
-    Reply = ok,
-    {reply, Reply, NewState};
+handle_call({drop, IN}, _From, State) ->
+    Matches = lists:filter(fun(Pid) -> 
+				   {ok, Names} = emud_item:get_interaction_names(Pid),  
+				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0 
+			   end, 
+			   State#state.items),
+    case Matches of 
+	[] -> {reply, {error, no_such_item}, State};
+	[Pid |_ ] -> 
+	    NewState = State#state{items = lists:delete(Pid, State#state.items)},
+	    emud_room:add_item(State#state.room, Pid),
+	    {reply, ok, NewState}
+    end;
 handle_call({crash}, _From, _State) ->
     0/0.
 

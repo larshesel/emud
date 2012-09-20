@@ -75,12 +75,12 @@ handle_crash(State) ->
 
 handle_drop(State, []) ->
     print(State, io_lib:format("You can't drop that.~n"));
-handle_drop(State, [Item]) ->
-    case emud_player:drop(State#state.player, list_to_atom(Item)) of 
+handle_drop(State, [IN]) ->
+    case emud_player:drop(State#state.player, IN) of 
 	{error, _} ->
 	    print(State, io_lib:format("What to drop?~n"));
         _ ->
-	    print(State, io_lib:format("You drop ~s.~n", [Item]))
+	    print(State, io_lib:format("You drop ~s.~n", [IN]))
 	end.
 
     
