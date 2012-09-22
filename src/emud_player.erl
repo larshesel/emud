@@ -23,7 +23,12 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--record(state, {room=no_room, items=[], output_server=none}).
+-type room() :: pid() | 'no_room'.
+-type item() :: pid().
+-type output_server() :: pid() | none.
+-type player() :: pid().
+
+-record(state, {room = no_room :: room(), items=[] :: list(item()), output_server = none:: output_server()}).
 
 %%%===================================================================
 %%% API
@@ -153,9 +158,9 @@ handle_call({crash}, _From, _State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({send_message, String}, State) ->
-    case State#state.output_server of
-	none -> ok;
-	_ ->  emud_console_output:write_string(State#state.output_server, String)
+    if is_pid(State#state.output_server) ->
+	    emud_console_output:write_string(State#state.output_server, String);
+       true -> ok
     end,
     {noreply, State}.
 
@@ -201,14 +206,14 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
+-spec leave_old_room(room(), player()) -> ok.
 leave_old_room(no_room, _Player) ->
     ok;
 leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 
-
-
+-spec pickup_item(player(), string(), any()) -> {reply, any(), any()}.
 pickup_item(_Player, ItemInteractionName, State) ->
     case emud_room:lookup_item_by_interaction_name(State#state.room, ItemInteractionName) of
 	{ok, [Item | _]} -> 
