@@ -11,6 +11,7 @@ init() ->
     emud_room:link_rooms(WestRoom, StartRoom, e),
 
     {ok, RestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(restroom)),
+    {ok, SheepStable} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(sheep_stable)),
 
     {ok, Poo} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(poo)),
     ok = emud_room:add_item(RestRoom, Poo),
@@ -19,6 +20,9 @@ init() ->
 
     emud_room:link_rooms(StartRoom, RestRoom, n),
     emud_room:link_rooms(RestRoom, StartRoom, s),
+
+    emud_room:link_rooms(StartRoom, SheepStable, s),
+    emud_room:link_rooms(SheepStable, StartRoom, n),
 
     {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player1)),
     emud_player:enter(P1, StartRoom),
