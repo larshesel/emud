@@ -5,16 +5,12 @@
 
 init() ->
     {ok, StartRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(startroom)),
-    ok = emud_room:set_description(StartRoom, "You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around."),
-    
     {ok, WestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(westroom)),
-    ok = emud_room:set_description(WestRoom, "You're in a huge lobby with beatiful marble columns and floors."),
 
     emud_room:link_rooms(StartRoom, WestRoom, w),
     emud_room:link_rooms(WestRoom, StartRoom, e),
 
     {ok, RestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(restroom)),
-    ok = emud_room:set_description(RestRoom, "You're in the restroom. There's a toilet in the corner and a sink on the wall. It smells of poo."),
 
     {ok, Poo} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(poo)),
     ok = emud_room:add_item(RestRoom, Poo),

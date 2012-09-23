@@ -14,7 +14,7 @@
 -export([start_link/1]).
 
 -export([get_description/1, get_directions/1, 
-	 set_description/2, link_rooms/3, get_players/1, get_items/1,
+	 link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
 	 msg_room/3, lookup_item_by_interaction_name/2]).
 
@@ -22,10 +22,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
-%%-define(SERVER, ?MODULE). 
-
--record(state, {room_name, directions=[], description, items=[], players=[]}).
-
+-include("emud_room.hrl").
 
 %%%===================================================================
 %%% API
@@ -39,9 +36,6 @@ get_description(Room) ->
 
 get_directions(Room) ->
     gen_server:call(Room, {get_directions}).
-
-set_description(Room, Description) ->
-    gen_server:call(Room, {set_description, Description}).
 
 enter(Room, Player) ->
     gen_server:call(Room, {enter_room, Player}).
@@ -76,11 +70,11 @@ msg_room(Room, FromPlayer, String) ->
 %% @doc
 %% Starts the server
 %%
-%% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
+%% @spec start_link(State) -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(_Name) ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(State) ->
+    gen_server:start_link(?MODULE, [State], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -98,7 +92,10 @@ start_link(_Name) ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+    {ok, #room_state{}};
+init([State]) ->
+    {ok, State}.
+
 
 %%--------------------------------------------------------------------
 %% @private
@@ -117,49 +114,45 @@ init([]) ->
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({get_directions}, _From, State) ->
-    Reply = {ok, State#state.directions},
+    Reply = {ok, State#room_state.directions},
     {reply, Reply, State};
 handle_call({get_description}, _From, State) ->
-    Reply = {ok, State#state.description},
+    Reply = {ok, State#room_state.description},
     {reply, Reply, State};
 handle_call({link_room, ToPid, Direction}, _From, State) ->
     Reply = ok,
     NewState = add_room(State, ToPid, Direction),
     {reply, Reply, NewState};
-handle_call({set_description, Description}, _From, State) ->
-    Reply = ok,
-    NewState = State#state{description = Description},
-    {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
     Reply = ok,
     handle_cast({message_room, Player, io_lib:format("~p entered the room.~n", [Player])}, State),
     %% or {error, could_not_enter_room, display_message}.
-    NewState = State#state{players = [Player| State#state.players]},
+    NewState = State#room_state{players = [Player| State#room_state.players]},
     {reply, Reply, NewState};
 handle_call({leave_room, Player}, _From, State) ->
     Reply = ok,
-    NewState = State#state{players = lists:delete(Player, State#state.players)},
+    NewState = State#room_state{players = lists:delete(Player, State#room_state.players)},
     handle_cast({message_room, Player, io_lib:format("~p left the room.~n", [Player])}, State),
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
-    Reply = {ok, State#state.players},
+    Reply = {ok, State#room_state.players},
     {reply, Reply, State};
 handle_call({get_items}, _From, State) ->
-    Reply = {ok, State#state.items},
+    Reply = {ok, State#room_state.items},
     {reply, Reply, State};
 handle_call({add_item, Item}, _From, State) ->
     Reply = ok,
-    {reply, Reply, State#state{items = [Item | State#state.items]}};
+    {reply, Reply, State#room_state{items = [Item | State#room_state.items]}};
 handle_call({remove_item, Item}, _From, State) ->
     Reply = ok,
-    NewState = State#state{items = lists:delete(Item, State#state.items)},
+    NewState = State#room_state{items = lists:delete(Item, State#room_state.items)},
     {reply, Reply, NewState};
 handle_call({lookup_item_by_in, IN}, _From, State) ->
     Matches = lists:filter(fun(Pid) -> 
 		 		   {ok, Names} = emud_item:get_interaction_names(Pid),
 				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
 		 	   end,
-		 State#state.items),
+		 State#room_state.items),
     Reply = {ok, Matches},
     {reply, Reply, State}.
     
@@ -175,7 +168,7 @@ handle_call({lookup_item_by_in, IN}, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({message_room, FromPlayer, String}, State) ->
-    [emud_player:send_msg(X, String) || X<-State#state.players, X /= FromPlayer],
+    [emud_player:send_msg(X, String) || X<-State#room_state.players, X /= FromPlayer],
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -222,4 +215,4 @@ code_change(_OldVsn, State, _Extra) ->
 
     
 add_room(OldState, ToPid, Direction) ->
-    OldState#state{directions=[{Direction, ToPid}| OldState#state.directions]}.
+    OldState#room_state{directions=[{Direction, ToPid}| OldState#room_state.directions]}.
