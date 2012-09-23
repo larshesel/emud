@@ -1,0 +1,1 @@
+-record(ai_state, {}).

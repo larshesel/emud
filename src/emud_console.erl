@@ -138,10 +138,11 @@ parse_direction([Direction]) ->
     end.
 
 handle_describe(State) ->
-    {ok, RoomDescription, Directions, Players, ItemPids} = emud_player:describe(State#state.player),
+    {ok, RoomDescription, Directions, Players, AIs, ItemPids} = emud_player:describe(State#state.player),
     print(State, io_lib:format("~s~n", [RoomDescription])),
     print(State, io_lib:format("You can go ~p from here.~n", [format_directions(Directions)])),
     print(State, io_lib:format("~p~n", [[ X || X<-Players, X /= State#state.player]])),
+    print(State, io_lib:format("ais: ~p~n", [[ X || X<-AIs]])),
     [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(ItemPids)].
 
 

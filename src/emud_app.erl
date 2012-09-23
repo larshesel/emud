@@ -12,7 +12,8 @@
 start(_StartType, _StartArgs) ->
     emud_player_sup:start_link(),
     emud_room_sup:start_link(),
-    emud_item_sup:start_link().
+    emud_item_sup:start_link(),
+    emud_ai_sup:start_link().
 
 
 stop(_State) ->

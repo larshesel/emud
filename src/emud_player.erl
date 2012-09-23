@@ -120,8 +120,9 @@ handle_call({describe}, _From, State) ->
     {ok, RoomDescriptions} = emud_room:get_description(State#state.room),
     {ok, Directions} = emud_room:get_directions(State#state.room),
     {ok, Items} = emud_room:get_items(State#state.room),
+    {ok, AIs} = emud_room:get_ais(State#state.room),
     {ok, Players} = emud_room:get_players(State#state.room),
-    Reply = {ok, RoomDescriptions, Directions, Players, Items},
+    Reply = {ok, RoomDescriptions, Directions, Players, AIs, Items},
     {reply, Reply, State};
 handle_call({get_items}, _From, State) ->
     Reply = {ok, State#state.items},

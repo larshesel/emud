@@ -1,5 +1,6 @@
 -module(emud_specs).
--export([childspec_player/1, childspec_room/1, childspec_item/1]).
+-export([childspec_player/1, childspec_room/1, childspec_item/1,
+	childspec_ai/1]).
 
 childspec_player(Name) ->
     {Name, {emud_player, start_link, [Name]},permanent, 2000, worker, [emud_player]}.
@@ -8,6 +9,9 @@ childspec_room(Name) ->
     {Name, {emud_room, start_link, [create_room_state(Name)]},permanent, 2000, worker, [emud_room]}.
 childspec_item(Name) ->
     {Name, {emud_item, start_link, [create_item_state(Name)]},permanent, 2000, worker, [emud_item]}.
+
+childspec_ai(Name) ->
+    {Name, {emud_item, start_link, [create_ai_state(Name)]},permanent, 2000, worker, [emud_ai]}.
 
 create_room_state(westroom) ->
     S1 = emud_create_room:create_state(),
@@ -20,7 +24,9 @@ create_room_state(restroom) ->
     emud_create_room:set_description(S1, "You're in the restroom. There's a toilet in the corner and a sink on the wall. It smells of poo.");
 create_room_state(sheep_stable) ->
     S1 = emud_create_room:create_state(),
-    emud_create_room:set_description(S1, "You entered the sheep stables.").
+    S2 = emud_create_room:set_description(S1, "You entered the sheep stables."),
+    {ok, Sheep} = supervisor:start_child(emud_ai_sup, emud_specs:childspec_ai(sheep)),
+    emud_create_room:add_ai(S2, Sheep).
 
 create_item_state(poo) ->
     S1 = emud_create_item:create_state(),
@@ -35,3 +41,9 @@ create_item_state(chair) ->
     S4 = emud_create_item:set_interaction_names(S3, ["chair"]),
     S4.
 
+create_ai_state(sheep) ->
+    S1 = emud_create_ai:create_state(),
+    S2 = emud_create_ai:set_short_description(S1, "A sheep."),
+    S3 = emud_create_ai:set_description(S2, "A very cute sheep."),
+    S4 = emud_create_ai:set_interaction_names(S3, ["sheep"]),
+    S4.
