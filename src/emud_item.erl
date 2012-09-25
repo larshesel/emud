@@ -101,7 +101,10 @@ handle_pickup(State, PlayerProperties) ->
 	    NewState = State#item_state{picked_up_state = picked_up},
 	    {reply, ok, NewState};
 	FailedProperties ->
-	    {reply, {error, demands, FailedProperties}, State}
+	    %% FIXME: Hardwired failure message
+	    {reply, {error, 
+		     {demands, FailedProperties}, 
+		     {display_message, "You try to lift the stone, but it is too heavy.\nYour back hurts."}}, State}
     end.
 
 %% Note: N^2 algorithm. But lists are short?

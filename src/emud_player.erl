@@ -234,10 +234,8 @@ pickup_item(Player, ItemInteractionName, State) ->
 		    emud_room:remove_item(State#state.room, Item),
 		    NewState = State#state{items = [Item | State#state.items]},
 		    {reply, Reply, NewState};
-		{error, DisplayMessage} ->
-		    {reply, {error, DisplayMessage}, State};
-		_ ->
-		    {reply, {error, could_not_pickup_item}, State}
+		{error, _, {display_message, DisplayMessage}} ->
+		    {reply, {error, {display_message, DisplayMessage}}, State}
 	    end;
 	_ -> {reply, {error, could_not_pickup_item}, State}
     end.
@@ -247,7 +245,7 @@ pick_up_item_negotiation(_Player, ItemPid) ->
     case emud_item:do(ItemPid, pickup) of 
 	ok ->
 	    ok;
-	{error, demands, Requirements} -> 
+	{error, {demands, Requirements}, _} -> 
 	    error_logger:info_msg("~p: Item demands requirements: ~p~n", [?MODULE, Requirements]),
 	    %% FIXME : hardwired strength as requirement
 	    emud_item:do(ItemPid, pickup, [{strength, 50}])

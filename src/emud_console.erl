@@ -107,9 +107,11 @@ handle_pickup(State, []) ->
     print(State, io_lib:format("You can't pick that up.~n", []));
 handle_pickup(State, [Args]) ->
     case emud_player:pickup(State#state.player, Args) of 
-	{error, _} ->
+	{error, could_not_pickup_item} ->
 	    print(State, io_lib:format("What do you want to pick up?~n", []));
-        _ ->
+	{error, {display_message, DisplayMessage}} ->
+	    print(State, io_lib:format("~s~n", [DisplayMessage]));
+        ok ->
 	    print(State, io_lib:format("You pick up ~s.~n", [Args]))
 	end.
 
