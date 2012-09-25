@@ -7,6 +7,13 @@ init() ->
     {ok, StartRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(startroom)),
     {ok, WestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(westroom)),
 
+    
+    {ok, Stone} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(stone)),
+    ok = emud_room:add_item(StartRoom, Stone),
+
+    {ok, HStone} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(heavy_stone)),
+    ok = emud_room:add_item(StartRoom, HStone),
+
     emud_room:link_rooms(StartRoom, WestRoom, w),
     emud_room:link_rooms(WestRoom, StartRoom, e),
 

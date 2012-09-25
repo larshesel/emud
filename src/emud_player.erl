@@ -28,7 +28,12 @@
 -type output_server() :: pid() | none.
 -type player() :: pid().
 
--record(state, {room = no_room :: room(), items=[] :: list(item()), output_server = none:: output_server()}).
+-type strength() :: integer().
+
+-record(state, {strength = 0 :: integer(), 
+		room = no_room :: room(), 
+		items=[] :: list(item()), 
+		output_server = none:: output_server()}).
 
 %%%===================================================================
 %%% API
@@ -207,6 +212,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
+%% -spec get_strength(any()) -> strength().
+%% get_strength(State) ->
+%%     State#state.strength.
+
 -spec leave_old_room(room(), player()) -> ok.
 leave_old_room(no_room, _Player) ->
     ok;
@@ -215,17 +224,33 @@ leave_old_room(Room, Player) ->
 
 
 -spec pickup_item(player(), string(), any()) -> {reply, any(), any()}.
-pickup_item(_Player, ItemInteractionName, State) ->
+pickup_item(Player, ItemInteractionName, State) ->
     case emud_room:lookup_item_by_interaction_name(State#state.room, ItemInteractionName) of
 	{ok, [Item | _]} -> 
-	    Reply = emud_room:remove_item(State#state.room, Item),
+	    %% start negotiation with the item.
+	    Reply = pick_up_item_negotiation(Player, Item),
 	    case Reply of
 		ok ->
+		    emud_room:remove_item(State#state.room, Item),
 		    NewState = State#state{items = [Item | State#state.items]},
 		    {reply, Reply, NewState};
-		_ -> {reply, {error, could_not_pickup_item}, State}
+		{error, DisplayMessage} ->
+		    {reply, {error, DisplayMessage}, State};
+		_ ->
+		    {reply, {error, could_not_pickup_item}, State}
 	    end;
 	_ -> {reply, {error, could_not_pickup_item}, State}
+    end.
+
+pick_up_item_negotiation(_Player, ItemPid) ->
+    error_logger:info_msg("~p: pickup: attempting pickup~n", [?MODULE]),
+    case emud_item:do(ItemPid, pickup) of 
+	ok ->
+	    ok;
+	{error, demands, Requirements} -> 
+	    error_logger:info_msg("~p: Item demands requirements: ~p~n", [?MODULE, Requirements]),
+	    %% FIXME : hardwired strength as requirement
+	    emud_item:do(ItemPid, pickup, [{strength, 50}])
     end.
 
 

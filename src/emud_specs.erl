@@ -39,7 +39,19 @@ create_item_state(chair) ->
     S2 = emud_create_item:set_short_description(S1, "A chair."),
     S3 = emud_create_item:set_description(S2, "A dingy looking chair, made of driftwood."),
     S4 = emud_create_item:set_interaction_names(S3, ["chair"]),
-    S4.
+    S4;
+create_item_state(stone) ->
+    S1 = emud_create_item:create_state(),
+    S2 = emud_create_item:set_short_description(S1, "A stone."),
+    S3 = emud_create_item:set_description(S2, "A nice looking stone. You feel like picking it up."),
+    S4 = emud_create_item:set_interaction_names(S3, ["stone"]),
+    emud_create_item:set_pickup_requirements(S4, [{strength, 40}]);
+create_item_state(heavy_stone) ->
+    S1 = emud_create_item:create_state(),
+    S2 = emud_create_item:set_short_description(S1, "A heavy stone."),
+    S3 = emud_create_item:set_description(S2, "A nice looking stone. You feel like picking it up. Looks heavy though."),
+    S4 = emud_create_item:set_interaction_names(S3, ["heavy_stone"]),
+    emud_create_item:set_pickup_requirements(S4, [{strength, 60}]).
 
 create_ai_state(sheep) ->
     S1 = emud_create_ai:create_state(),
