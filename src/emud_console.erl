@@ -37,8 +37,12 @@ parse_line(["help"]) ->
     {help, []};
 parse_line(["inventory"]) ->
     {inventory, []};
+parse_line(["i"]) ->
+    {inventory, []};
 parse_line(["go" | Args]) ->
     {go, parse_direction(Args)};
+parse_line(["d"]) ->
+    {describe, []};
 parse_line(["describe"]) ->
     {describe, []};
 parse_line(["pick", "up" | Args]) ->
