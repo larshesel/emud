@@ -50,7 +50,7 @@ create_item_state(heavy_stone) ->
     S1 = emud_create_item:create_state(),
     S2 = emud_create_item:set_short_description(S1, "A heavy stone."),
     S3 = emud_create_item:set_description(S2, "A nice looking stone. You feel like picking it up. Looks heavy though."),
-    S4 = emud_create_item:set_interaction_names(S3, ["heavy_stone"]),
+    S4 = emud_create_item:set_interaction_names(S3, ["heavy stone"]),
     emud_create_item:set_pickup_requirements(S4, [{strength, 60}]).
 
 create_ai_state(sheep) ->

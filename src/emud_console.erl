@@ -75,7 +75,8 @@ handle_crash(State) ->
 
 handle_drop(State, []) ->
     print(State, io_lib:format("You can't drop that.~n", []));
-handle_drop(State, [IN]) ->
+handle_drop(State, INList) ->
+    IN = string:join(INList, " "),
     case emud_player:drop(State#state.player, IN) of 
 	{error, _} ->
 	    print(State, io_lib:format("What to drop?~n", []));
@@ -105,7 +106,8 @@ print_help(State) ->
 
 handle_pickup(State, []) ->
     print(State, io_lib:format("You can't pick that up.~n", []));
-handle_pickup(State, [Args]) ->
+handle_pickup(State, ArgList) ->
+    Args = string:join(ArgList, " "),
     case emud_player:pickup(State#state.player, Args) of 
 	{error, could_not_pickup_item} ->
 	    print(State, io_lib:format("What do you want to pick up?~n", []));
