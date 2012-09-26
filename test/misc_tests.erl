@@ -43,8 +43,8 @@ place_two_players_in_a_room_test_() ->
 place_two_players_in_a_room(_) ->
     {ok, RoomPid} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(startroom)),
 
-    {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(p1)),
-    {ok, P2} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(p2)),
+    {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player1)),
+    {ok, P2} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player2)),
 
     [?_assertMatch(ok, emud_player:enter(P1, RoomPid)),
      ?_assertMatch(ok, emud_player:enter(P2, RoomPid)),

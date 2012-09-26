@@ -3,7 +3,7 @@
 	childspec_ai/1]).
 
 childspec_player(Name) ->
-    {Name, {emud_player, start_link, [Name]},permanent, 2000, worker, [emud_player]}.
+    {Name, {emud_player, start_link, [create_player_state(Name)]},permanent, 2000, worker, [emud_player]}.
 
 childspec_room(Name) ->
     {Name, {emud_room, start_link, [create_room_state(Name)]},permanent, 2000, worker, [emud_room]}.
@@ -12,6 +12,15 @@ childspec_item(Name) ->
 
 childspec_ai(Name) ->
     {Name, {emud_item, start_link, [create_ai_state(Name)]},permanent, 2000, worker, [emud_ai]}.
+
+create_player_state(player2) ->
+    S1 = emud_create_player:create_state(),
+    S2 = emud_create_player:set_description(S1, "A huge orc, with bulging muscles and evil looking eyes."),
+    emud_create_player:set_short_description(S2, "An orc.");
+create_player_state(player1) ->
+    S1 = emud_create_player:create_state(),
+    S2 = emud_create_player:set_description(S1, "A small looking human with pale skin. Probably an Erlang programmer."),
+    emud_create_player:set_short_description(S2, "A dork.").
 
 create_room_state(westroom) ->
     S1 = emud_create_room:create_state(),

@@ -14,7 +14,8 @@
 -export([start_link/1, register_output_server/2, send_msg/2]).
 
 -export([enter/2, describe/1, get_directions/1,
-	 go/2, pickup/2, get_items/1, drop/2]).
+	 go/2, pickup/2, get_items/1, drop/2,
+	 get_description/1, get_short_description/1]).
 
 %% DEBUG
 -export([crash/1]).
@@ -23,17 +24,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--type room() :: pid() | 'no_room'.
--type item() :: pid().
--type output_server() :: pid() | none.
--type player() :: pid().
-
--type strength() :: integer().
-
--record(state, {strength = 0 :: integer(), 
-		room = no_room :: room(), 
-		items=[] :: list(item()), 
-		output_server = none:: output_server()}).
+-include("emud_player.hrl").
 
 %%%===================================================================
 %%% API
@@ -41,6 +32,12 @@
 
 enter(Player, Room) ->
     gen_server:call(Player, {enter_room, Player, Room}).
+
+get_description(Player) ->
+    gen_server:call(Player, {get_description}).
+
+get_short_description(Player) ->
+    gen_server:call(Player, {get_short_description}).
 
 describe(Player) ->
     gen_server:call(Player, {describe}).
@@ -69,48 +66,18 @@ crash(Player) ->
 send_msg(Player, String) ->
     gen_server:cast(Player, {send_message, String}).
 
-%%--------------------------------------------------------------------
-%% @doc
-%% Starts the server
-%%
-%% @spec start_link(Name) -> {ok, Pid} | ignore | {error, Error}
-%% @end
-%%--------------------------------------------------------------------
-start_link(_Name) ->
-    gen_server:start_link(?MODULE, [], []).
+start_link(State) ->
+    gen_server:start_link(?MODULE, [State], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Initializes the server
-%%
-%% @spec init(Args) -> {ok, State} |
-%%                     {ok, State, Timeout} |
-%%                     ignore |
-%%                     {stop, Reason}
-%% @end
-%%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+    {ok, #state{}};
+init([State]) ->
+    {ok, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling call messages
-%%
-%% @spec handle_call(Request, From, State) ->
-%%                                   {reply, Reply, State} |
-%%                                   {reply, Reply, State, Timeout} |
-%%                                   {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, Reply, State} |
-%%                                   {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({pickup, Player, Item}, _From, State) ->
@@ -148,21 +115,13 @@ handle_call({drop, IN}, _From, State) ->
 	    emud_room:add_item(State#state.room, Pid),
 	    {reply, ok, NewState}
     end;
+handle_call({get_description}, _From, State) ->
+    {reply, {ok, State#state.description}, State};
+handle_call({get_short_description}, _From, State) ->
+    {reply, {ok, State#state.short_description}, State};
 handle_call({crash}, _From, _State) ->
     0/0.
 
-
-
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling cast messages
-%%
-%% @spec handle_cast(Msg, State) -> {noreply, State} |
-%%                                  {noreply, State, Timeout} |
-%%                                  {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
 handle_cast({send_message, String}, State) ->
     if is_pid(State#state.output_server) ->
 	    emud_console_output:write_string(State#state.output_server, String);
@@ -170,41 +129,12 @@ handle_cast({send_message, String}, State) ->
     end,
     {noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling all non call/cast messages
-%%
-%% @spec handle_info(Info, State) -> {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
 handle_info(_Info, State) ->
     {noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% This function is called by a gen_server when it is about to
-%% terminate. It should be the opposite of Module:init/1 and do any
-%% necessary cleaning up. When it returns, the gen_server terminates
-%% with Reason. The return value is ignored.
-%%
-%% @spec terminate(Reason, State) -> void()
-%% @end
-%%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
     ok.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Convert process state when code is changed
-%%
-%% @spec code_change(OldVsn, State, Extra) -> {ok, NewState}
-%% @end
-%%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
