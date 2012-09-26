@@ -63,8 +63,8 @@ drop(Player, Item) ->
 crash(Player) ->
     gen_server:call(Player, {crash}).
 
-send_msg(Player, String) ->
-    gen_server:cast(Player, {send_message, String}).
+send_msg(Player, Message) ->
+    gen_server:cast(Player, {send_message, Message}).
 
 start_link(State) ->
     gen_server:start_link(?MODULE, [State], []).
@@ -122,9 +122,9 @@ handle_call({get_short_description}, _From, State) ->
 handle_call({crash}, _From, _State) ->
     0/0.
 
-handle_cast({send_message, String}, State) ->
+handle_cast({send_message, Message}, State) ->
     if is_pid(State#state.output_server) ->
-	    emud_console_output:write_string(State#state.output_server, String);
+	    emud_console_output:write_msg(State#state.output_server, Message);
        true -> ok
     end,
     {noreply, State}.

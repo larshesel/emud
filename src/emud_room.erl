@@ -16,7 +16,7 @@
 -export([get_description/1, get_directions/1, 
 	 link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
-	 msg_room/3, lookup_item_by_interaction_name/2,
+	 lookup_item_by_interaction_name/2,
 	 get_ais/1]).
 
 %% gen_server callbacks
@@ -65,10 +65,6 @@ lookup_item(Room, ItemName) ->
 lookup_item_by_interaction_name(Room, IN) ->
     gen_server:call(Room, {lookup_item_by_in, IN}).
 
-%% CASTS
-msg_room(Room, FromPlayer, String) ->
-    gen_server:cast(Room, {message_room, FromPlayer, String}).
-
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -104,14 +100,14 @@ handle_call({link_room, ToPid, Direction}, _From, State) ->
     {reply, Reply, NewState};
 handle_call({enter_room, Player}, _From, State) ->
     Reply = ok,
-    handle_cast({message_room, Player, io_lib:format("~p entered the room.~n", [Player])}, State),
+    handle_cast({message_room, {player_entered_room, Player}}, State),
     %% or {error, could_not_enter_room, display_message}.
     NewState = State#room_state{players = [Player| State#room_state.players]},
     {reply, Reply, NewState};
 handle_call({leave_room, Player}, _From, State) ->
     Reply = ok,
     NewState = State#room_state{players = lists:delete(Player, State#room_state.players)},
-    handle_cast({message_room, Player, io_lib:format("~p left the room.~n", [Player])}, State),
+    handle_cast({message_room, {player_left_room, Player}}, State),
     {reply, Reply, NewState};
 handle_call({get_players}, _From, State) ->
     Reply = {ok, State#room_state.players},
@@ -139,8 +135,8 @@ handle_call({lookup_item_by_in, IN}, _From, State) ->
     {reply, Reply, State}.
     
 
-handle_cast({message_room, FromPlayer, String}, State) ->
-    [emud_player:send_msg(X, String) || X<-State#room_state.players, X /= FromPlayer],
+handle_cast({message_room, {Type, From}}, State) ->
+    [emud_player:send_msg(X, {Type, From}) || X<-State#room_state.players, X /= From],
     {noreply, State}.
 
 handle_info(_Info, State) ->

@@ -13,7 +13,7 @@
 %% API
 -export([start_link/0]).
 
--export([write_string/2]).
+-export([write_string/2, write_msg/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -25,16 +25,12 @@
 %%% API
 %%%===================================================================
 
+write_msg(Server, Message) ->
+    gen_server:cast(Server, {write_message, Message}).
+
 write_string(Server, String) ->
     gen_server:cast(Server, {write_string, String}).
 
-%%--------------------------------------------------------------------
-%% @doc
-%% Starts the server
-%%
-%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
-%% @end
-%%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
@@ -42,86 +38,33 @@ start_link() ->
 %%% gen_server callbacks
 %%%===================================================================
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Initializes the server
-%%
-%% @spec init(Args) -> {ok, State} |
-%%                     {ok, State, Timeout} |
-%%                     ignore |
-%%                     {stop, Reason}
-%% @end
-%%--------------------------------------------------------------------
 init([]) ->
     {ok, #state{}}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling call messages
-%%
-%% @spec handle_call(Request, From, State) ->
-%%                                   {reply, Reply, State} |
-%%                                   {reply, Reply, State, Timeout} |
-%%                                   {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, Reply, State} |
-%%                                   {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling cast messages
-%%
-%% @spec handle_cast(Msg, State) -> {noreply, State} |
-%%                                  {noreply, State, Timeout} |
-%%                                  {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
 handle_cast({write_string, String}, State) ->
     io:fwrite("~s", [String]),
+    {noreply, State};
+handle_cast({write_message, Message}, State) ->
+    handle_message(Message),
     {noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling all non call/cast messages
-%%
-%% @spec handle_info(Info, State) -> {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
+handle_message({player_left_room, Pid})->
+    io:fwrite("~s left the room~n.", [get_text(emud_player:get_short_description(Pid))]);
+handle_message({player_entered_room, Pid})->
+    io:fwrite("~s entered the room~n.", [get_text(emud_player:get_short_description(Pid))]).
+
+get_text({ok, Text}) ->
+    Text.
+
 handle_info(_Info, State) ->
     {noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% This function is called by a gen_server when it is about to
-%% terminate. It should be the opposite of Module:init/1 and do any
-%% necessary cleaning up. When it returns, the gen_server terminates
-%% with Reason. The return value is ignored.
-%%
-%% @spec terminate(Reason, State) -> void()
-%% @end
-%%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
     ok.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Convert process state when code is changed
-%%
-%% @spec code_change(OldVsn, State, Extra) -> {ok, NewState}
-%% @end
-%%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
