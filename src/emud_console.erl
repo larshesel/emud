@@ -132,7 +132,8 @@ handle_go(State, Direction) ->
 	end.
 
 parse_direction([]) -> no_such_direction;
-parse_direction([Direction]) ->
+parse_direction(DirectionList) ->
+    Direction = string:join(DirectionList, " "),
     case Direction of 
 	"west" -> w;
 	"east" -> e;
