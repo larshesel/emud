@@ -15,7 +15,8 @@
 
 -export([enter/2, describe/1, get_directions/1,
 	 go/2, pickup/2, get_items/1, drop/2,
-	 get_description/1, get_short_description/1]).
+	 get_description/1, get_short_description/1,
+	 get_name/1]).
 
 %% DEBUG
 -export([crash/1]).
@@ -32,6 +33,9 @@
 
 enter(Player, Room) ->
     gen_server:call(Player, {enter_room, Player, Room}).
+
+get_name(Player) ->
+    gen_server:call(Player, {get_name}).
 
 get_description(Player) ->
     gen_server:call(Player, {get_description}).
@@ -115,6 +119,8 @@ handle_call({drop, IN}, _From, State) ->
 	    emud_room:add_item(State#state.room, Pid),
 	    {reply, ok, NewState}
     end;
+handle_call({get_name}, _From, State) ->
+    {reply, {ok, State#state.name}, State};
 handle_call({get_description}, _From, State) ->
     {reply, {ok, State#state.description}, State};
 handle_call({get_short_description}, _From, State) ->

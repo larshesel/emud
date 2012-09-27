@@ -5,7 +5,8 @@
 
 -type strength() :: integer().
 
--record(state, {strength = 0 :: integer(), 
+-record(state, {name="",
+		strength = 0 :: integer(), 
 		room = no_room :: room(), 
 		items=[] :: list(item()), 
 		output_server = none:: output_server(),

@@ -15,12 +15,14 @@ childspec_ai(Name) ->
 
 create_player_state(player2) ->
     S1 = emud_create_player:create_state(),
-    S2 = emud_create_player:set_description(S1, "A huge orc, with bulging muscles and evil looking eyes."),
-    emud_create_player:set_short_description(S2, "An orc.");
+    S2 = emud_create_player:set_name(S1, "Dilbert"),
+    S3 = emud_create_player:set_description(S2, "A huge orc, with bulging muscles and evil looking eyes."),
+    emud_create_player:set_short_description(S3, "An orc.");
 create_player_state(player1) ->
     S1 = emud_create_player:create_state(),
-    S2 = emud_create_player:set_description(S1, "A small looking human with pale skin. Probably an Erlang programmer."),
-    emud_create_player:set_short_description(S2, "A dork.").
+    S2 = emud_create_player:set_name(S1, "Lars"),
+    S3 = emud_create_player:set_description(S2, "A small looking human with pale skin. Probably an Erlang programmer."),
+    emud_create_player:set_short_description(S3, "A dork.").
 
 create_room_state(westroom) ->
     S1 = emud_create_room:create_state(),

@@ -6,6 +6,9 @@
 create_state() ->
     #state{}.
 
+set_name(State, Name) ->
+    State#state{name = Name}.
+
 set_description(State, Description) ->
     State#state{description = Description}.
 
