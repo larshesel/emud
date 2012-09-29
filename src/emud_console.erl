@@ -125,7 +125,7 @@ handle_inventory(State) ->
 	    print(State, io_lib:format("You are carrying nothing.~n",[]));
 	_ ->
 	    print(State, io_lib:format("You are carrying: ~n",[])),
-	    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(Items)]
+	    [print(State, io_lib:format("~s", [X])) || X <- get_item_descriptions(Items)]
     end.
 
 print_help(State) ->
@@ -135,6 +135,7 @@ print_help(State) ->
     print(State, io_lib:format("  go <direction>~n", [])),
     print(State, io_lib:format("  pick up <item>~n", [])),
     print(State, io_lib:format("  get <item>~n", [])),
+    print(State, io_lib:format("  look at <item|person>~n", [])),
     print(State, io_lib:format("  inventory~n~n", [])).
 
 handle_pickup(State, []) ->
@@ -145,7 +146,7 @@ handle_pickup(State, ArgList) ->
 	{error, could_not_pickup_item} ->
 	    print(State, io_lib:format("What do you want to pick up?~n", []));
 	{error, {display_message, DisplayMessage}} ->
-	    print(State, io_lib:format("~s~n", [DisplayMessage]));
+	    print(State, io_lib:format("~s", [DisplayMessage]));
         ok ->
 	    print(State, io_lib:format("You pick up ~s.~n", [Args]))
 	end.
@@ -177,11 +178,11 @@ parse_direction(DirectionList) ->
 
 handle_describe(State) ->
     {ok, RoomDescription, Directions, Players, AIs, ItemPids} = emud_player:describe(State#state.player),
-    print(State, io_lib:format("~s~n", [RoomDescription])),
+    print(State, io_lib:format("~s", [RoomDescription])),
     print(State, io_lib:format("You can go ~p from here.~n", [format_directions(Directions)])),
     [print(State, io_lib:format("~s.~n", [get_text(emud_player:get_name(X))])) || X<- Players, X /= State#state.player],
     [print(State, io_lib:format("ais: ~p.~n", [X])) || X<-AIs],
-    [print(State, io_lib:format("~s~n", [X])) || X <- get_item_descriptions(ItemPids)].
+    [print(State, io_lib:format("~s", [X])) || X <- get_item_descriptions(ItemPids)].
 
 
 get_item_descriptions(ItemPids) ->

@@ -173,17 +173,16 @@ handle_look_at(_Player, IN, State) ->
 	IN == State#state.name ->
 	    {reply, {ok, State#state.description}, State};
 	true -> 
-	    case get_item_pids(State, IN) of 
-		[] ->
-		    %% none found, look in room
-		    case emud_room:lookup_item_by_interaction_name(State#state.room, IN) of 
-			{ok, []} -> 
-			    {reply, {error, no_such_thing}, State};
-			{ok, [Item | _]} -> 
-			    {reply, emud_item:get_description(Item), State}
-		    end;
-		[Item | _] -> 
-		    {reply, emud_item:get_description(Item), State}
+	    PlayerItemPids = get_item_pids(State, IN),
+	    {ok, RoomItemPids} = emud_room:lookup_item_by_interaction_name(State#state.room, IN),
+	    if PlayerItemPids /= [] ->
+		    [Pid | _] = PlayerItemPids,
+		    {reply, emud_item:get_description(Pid), State};
+	       RoomItemPids /= []  ->
+		    [Pid | _] = RoomItemPids,
+		    {reply, emud_item:get_description(Pid), State};
+	       true ->
+		{reply, {ok, not_found}, State}
 	    end
     end.
 	    

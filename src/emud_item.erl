@@ -104,7 +104,7 @@ handle_pickup(State, PlayerProperties) ->
 	    %% FIXME: Hardwired failure message
 	    {reply, {error, 
 		     {demands, FailedProperties}, 
-		     {display_message, "You try to lift the stone, but it is too heavy.\nYour back hurts."}}, State}
+		     {display_message, "You try to lift the stone, but it is too heavy.\nYour back hurts.\n"}}, State}
     end.
 
 %% Note: N^2 algorithm. But lists are short?
