@@ -16,7 +16,7 @@
 -export([enter/2, describe/1, get_directions/1,
 	 go/2, pickup/2, get_items/1, drop/2,
 	 get_description/1, get_short_description/1,
-	 get_name/1]).
+	 get_name/1, look_at/2]).
 
 %% DEBUG
 -export([crash/1]).
@@ -30,6 +30,9 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+look_at(Player, IN) ->
+    gen_server:call(Player, {look_at, Player, IN}).
 
 enter(Player, Room) ->
     gen_server:call(Player, {enter_room, Player, Room}).
@@ -86,6 +89,8 @@ handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({pickup, Player, Item}, _From, State) ->
     pickup_item(Player, Item, State);
+handle_call({look_at, Player, IN}, _From, State) ->
+    handle_look_at(Player, IN, State);
 handle_call({enter_room, Player, Room}, _From, State) ->
     enter_room(Player, Room, State);
 handle_call({go, Player, Direction}, _From, State) -> 
@@ -107,11 +112,7 @@ handle_call({register_output_server, Server}, _From, State) ->
     Reply = ok,
     {reply, Reply, State#state{output_server = Server}};
 handle_call({drop, IN}, _From, State) ->
-    Matches = lists:filter(fun(Pid) -> 
-				   {ok, Names} = emud_item:get_interaction_names(Pid),  
-				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0 
-			   end, 
-			   State#state.items),
+    Matches = get_item_pids(State, IN),
     case Matches of 
 	[] -> {reply, {error, no_such_item}, State};
 	[Pid |_ ] -> 
@@ -127,6 +128,7 @@ handle_call({get_short_description}, _From, State) ->
     {reply, {ok, State#state.short_description}, State};
 handle_call({crash}, _From, _State) ->
     0/0.
+
 
 handle_cast({send_message, Message}, State) ->
     if is_pid(State#state.output_server) ->
@@ -152,13 +154,39 @@ code_change(_OldVsn, State, _Extra) ->
 %% get_strength(State) ->
 %%     State#state.strength.
 
+get_item_pids(State, IN) ->
+    lists:filter(fun(Pid) -> 
+			 {ok, Names} = emud_item:get_interaction_names(Pid),  
+			 length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0 
+		 end, 
+		 State#state.items).
+    
 -spec leave_old_room(room(), player()) -> ok.
 leave_old_room(no_room, _Player) ->
     ok;
 leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
-
+handle_look_at(_Player, IN, State) ->
+    if 
+	%% are you looking a me?
+	IN == State#state.name ->
+	    {reply, {ok, State#state.description}, State};
+	true -> 
+	    case get_item_pids(State, IN) of 
+		[] ->
+		    %% none found, look in room
+		    case emud_room:lookup_item_by_interaction_name(State#state.room, IN) of 
+			{ok, []} -> 
+			    {reply, {error, no_such_thing}, State};
+			{ok, [Item | _]} -> 
+			    {reply, emud_item:get_description(Item), State}
+		    end;
+		[Item | _] -> 
+		    {reply, emud_item:get_description(Item), State}
+	    end
+    end.
+	    
 -spec pickup_item(player(), string(), any()) -> {reply, any(), any()}.
 pickup_item(Player, ItemInteractionName, State) ->
     case emud_room:lookup_item_by_interaction_name(State#state.room, ItemInteractionName) of

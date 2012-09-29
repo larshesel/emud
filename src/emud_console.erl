@@ -31,6 +31,12 @@ loop(State) ->
 
 parse_line([]) ->
     {nop, []};
+parse_line(["l" | Args]) ->
+    {look_at, Args};
+parse_line(["look", "at" | Args]) ->
+    {look_at, Args};
+parse_line(["look" | Args]) ->
+    {look_at, Args};
 parse_line(["quit"]) ->
     {quit, []};
 parse_line(["help"]) ->
@@ -58,19 +64,42 @@ parse_line(_) ->
 
 do_command(State, {Command, Args}) ->
     case Command of 
-	nop -> ok;
-	quit -> quit;
-	drop -> handle_drop(State, Args);
+	look_at ->
+	    handle_look_at(State, Args);
+	nop -> 
+	    ok;
+	quit -> 
+	    quit;
+	drop -> 
+	    handle_drop(State, Args);
 	go ->
 	    handle_go(State, Args);
-	describe -> handle_describe(State);
-	beg_your_pardon -> print(State, io_lib:format("You can't do that~n", []));
-	pickup -> handle_pickup(State, Args);
-	help -> print_help(State);
-	inventory -> handle_inventory(State);
-	crash -> handle_crash(State)
+	describe -> 
+	    handle_describe(State);
+	beg_your_pardon -> 
+	    print(State, io_lib:format("You can't do that~n", []));
+	pickup -> 
+	    handle_pickup(State, Args);
+	help -> 
+	    print_help(State);
+	inventory -> 
+	    handle_inventory(State);
+	crash -> 
+	    handle_crash(State)
     end.
 
+handle_look_at(State, []) ->
+    print(State, io_lib:format("Look at what?.~n", []));
+handle_look_at(State, INList) ->
+    IN = string:join(INList, " "),
+    case emud_player:look_at(State#state.player, IN) of
+	{ok, Message} -> 
+	    print(State, Message);
+	{error, Message} -> 
+	    print(State, Message)
+    end.
+
+    
 print(State, String) ->
     emud_console_output:write_string(State#state.output_server, String).
 

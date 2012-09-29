@@ -17,7 +17,7 @@
 	 link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
 	 lookup_item_by_interaction_name/2,
-	 get_ais/1]).
+	 get_ais/1, lookup_player_by_in/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -65,6 +65,8 @@ lookup_item(Room, ItemName) ->
 lookup_item_by_interaction_name(Room, IN) ->
     gen_server:call(Room, {lookup_item_by_in, IN}).
 
+lookup_player_by_in(Room, IN) ->
+    gen_server:call(Room, {lookup_player_by_in, IN}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -128,6 +130,14 @@ handle_call({remove_item, Item}, _From, State) ->
 handle_call({lookup_item_by_in, IN}, _From, State) ->
     Matches = lists:filter(fun(Pid) -> 
 		 		   {ok, Names} = emud_item:get_interaction_names(Pid),
+				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
+		 	   end,
+		 State#room_state.items),
+    Reply = {ok, Matches},
+    {reply, Reply, State};
+handle_call({lookup_player_by_in, IN}, _From, State) ->
+    Matches = lists:filter(fun(Pid) -> 
+		 		   {ok, Names} = emud_player:get_name(Pid),
 				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
 		 	   end,
 		 State#room_state.items),
