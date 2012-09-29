@@ -175,7 +175,12 @@ handle_look_at(_Player, IN, State) ->
 	true -> 
 	    PlayerItemPids = get_item_pids(State, IN),
 	    {ok, RoomItemPids} = emud_room:lookup_item_by_interaction_name(State#state.room, IN),
-	    if PlayerItemPids /= [] ->
+	    {ok, PlayerPids} = emud_room:get_players(State#state.room),
+	    MachedPlayerPids = [X || X<-lists:filter(fun(Pid) -> Pid /= self() end, PlayerPids), emud_player:get_name(X) == {ok, IN}],
+	    if MachedPlayerPids /= [] ->
+		    [Pid | _] = MachedPlayerPids,
+		    {reply, emud_player:get_description(Pid), State};
+	       PlayerItemPids /= [] ->
 		    [Pid | _] = PlayerItemPids,
 		    {reply, emud_item:get_description(Pid), State};
 	       RoomItemPids /= []  ->

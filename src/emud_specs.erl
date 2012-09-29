@@ -29,7 +29,7 @@ create_room_state(westroom) ->
     emud_create_room:set_description(S1, "You're in a huge lobby with beautiful marble columns and floors.\n");
 create_room_state(startroom) ->
     S1 = emud_create_room:create_state(),
-    emud_create_room:set_description(S1, "You are in a small dark room. There are a lot of chairs facing a podium, like in an auditorium or a court room. On the desk on the podium there are a lot of papers lying around.\n");
+    emud_create_room:set_description(S1, "You are in a small dark room.\nThere are a lot of chairs facing a podium, \nlike in an auditorium or a court room. \nOn the desk on the podium there are a lot of papers lying around.\n");
 create_room_state(restroom) ->
     S1 = emud_create_room:create_state(),
     emud_create_room:set_description(S1, "You're in the restroom. There's a toilet in the corner and a sink on the wall. It smells of poo.\n");
