@@ -174,7 +174,7 @@ handle_look_at(_Player, IN, State) ->
 	    {reply, {ok, State#state.description}, State};
 	true -> 
 	    PlayerItemPids = get_item_pids(State, IN),
-	    {ok, RoomItemPids} = emud_room:lookup_item_by_interaction_name(State#state.room, IN),
+	    {ok, RoomItemPids} = emud_room:lookup_item_by_in(State#state.room, IN),
 	    {ok, PlayerPids} = emud_room:get_players(State#state.room),
 	    MachedPlayerPids = [X || X<-lists:filter(fun(Pid) -> Pid /= self() end, PlayerPids), emud_player:get_name(X) == {ok, IN}],
 	    if MachedPlayerPids /= [] ->
@@ -193,7 +193,7 @@ handle_look_at(_Player, IN, State) ->
 	    
 -spec pickup_item(player(), string(), any()) -> {reply, any(), any()}.
 pickup_item(Player, ItemInteractionName, State) ->
-    case emud_room:lookup_item_by_interaction_name(State#state.room, ItemInteractionName) of
+    case emud_room:lookup_item_by_in(State#state.room, ItemInteractionName) of
 	{ok, [Item | _]} -> 
 	    %% start negotiation with the item.
 	    Reply = pick_up_item_negotiation(Player, Item),
@@ -229,10 +229,11 @@ enter_room(Player, Room, State) ->
 	    NewState = State#state{room = Room},
 	    %% leave the old room
 	    leave_old_room(State#state.room, Player),
-	    {reply, Reply, NewState};
-	{error, could_not_enter_room} ->
-	    %% we were not allowed to enter!
-	    {reply, Reply, State}
+	    {reply, Reply, NewState}
+%% ;
+%% 	{error, could_not_enter_room} ->
+%% 	    %% we were not allowed to enter!
+%% 	    {reply, Reply, State}
     end.
 
     

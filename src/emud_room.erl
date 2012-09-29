@@ -15,14 +15,15 @@
 
 -export([get_description/1, get_directions/1, 
 	 link_rooms/3, get_players/1, get_items/1,
-	 enter/2, leave/2, add_item/2, remove_item/2, lookup_item/2,
-	 lookup_item_by_interaction_name/2,
+	 enter/2, leave/2, add_item/2, remove_item/2,
+	 lookup_item_by_in/2,
 	 get_ais/1, lookup_player_by_in/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
+-include("emud.hrl").
 -include("emud_room.hrl").
 
 %%%===================================================================
@@ -32,39 +33,45 @@
 link_rooms(FromRoom, ToRoom, Direction) ->
     gen_server:call(FromRoom, {link_room, ToRoom, Direction}).
 
+-spec get_description(room()) -> {ok, string()}.
 get_description(Room) ->
     gen_server:call(Room, {get_description}).
 
+-spec get_directions(room()) -> {ok, list(any())}.
 get_directions(Room) ->
     gen_server:call(Room, {get_directions}).
 
+-spec enter(room(), player()) -> ok.
 enter(Room, Player) ->
     gen_server:call(Room, {enter_room, Player}).
 
+-spec get_players(room()) -> {ok, list(player())}.
 get_players(Room) ->
     gen_server:call(Room, {get_players}).
 
+-spec get_items(room()) -> {ok, list(item())}.
 get_items(Room) ->
     gen_server:call(Room, {get_items}).
 
 get_ais(Room) ->
     gen_server:call(Room, {get_ais}).
 
+-spec leave(room(), player()) -> ok.
 leave(Room, Player) ->
     gen_server:call(Room, {leave_room, Player}).
 
+-spec add_item(room(), item()) -> ok.
 add_item(Room, Item) ->
     gen_server:call(Room, {add_item, Item}).
 
 remove_item(Room, Item) ->
     gen_server:call(Room, {remove_item, Item}).
 
-lookup_item(Room, ItemName) ->
-    gen_server:call(Room, {lookup_item, ItemName}).
-
-lookup_item_by_interaction_name(Room, IN) ->
+-spec lookup_item_by_in(room(), in()) -> {ok, list(item())}.
+lookup_item_by_in(Room, IN) ->
     gen_server:call(Room, {lookup_item_by_in, IN}).
 
+-spec lookup_player_by_in(room(), in()) -> {ok, list(player())}.
 lookup_player_by_in(Room, IN) ->
     gen_server:call(Room, {lookup_player_by_in, IN}).
 
