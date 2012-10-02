@@ -42,7 +42,7 @@ create_room_state(sheep_stable) ->
 create_item_state(poo) ->
     S1 = emud_create_item:create_state(),
     S2 = emud_create_item:set_short_description(S1, "A dark oblong object.\n"),
-    S3 = emud_create_item:set_description(S2, "You pick up the dark, round object, it feels soft and slightly sticky.\nYou are disgusted to realize it's a poo\nand someone has been eating peanuts.\n"),
+    S3 = emud_create_item:set_description(S2, "It is a dark, round object.\nYou are disgusted to realize it's a poo\nand someone has been eating peanuts.\n"),
     S4 = emud_create_item:set_interaction_names(S3, ["object", "poo"]),
     S4;
 create_item_state(chair) ->
