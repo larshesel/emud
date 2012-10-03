@@ -117,6 +117,7 @@ handle_call({drop, IN}, _From, State) ->
 	[] -> {reply, {error, no_such_item}, State};
 	[Pid |_ ] -> 
 	    NewState = State#state{items = lists:delete(Pid, State#state.items)},
+	    %% FIXME : need to set the item state to dropped
 	    emud_room:add_item(State#state.room, Pid),
 	    {reply, ok, NewState}
     end;
@@ -203,7 +204,9 @@ pickup_item(Player, ItemInteractionName, State) ->
 		    NewState = State#state{items = [Item | State#state.items]},
 		    {reply, Reply, NewState};
 		{error, _, {display_message, DisplayMessage}} ->
-		    {reply, {error, {display_message, DisplayMessage}}, State}
+		    {reply, {error, {display_message, DisplayMessage}}, State};
+		{error, no_such_item} ->
+		    {reply, {error, could_not_pickup_item}, State}
 	    end;
 	_ -> {reply, {error, could_not_pickup_item}, State}
     end.
@@ -216,7 +219,9 @@ pick_up_item_negotiation(_Player, ItemPid) ->
 	{error, {demands, Requirements}, _} -> 
 	    error_logger:info_msg("~p: Item demands requirements: ~p~n", [?MODULE, Requirements]),
 	    %% FIXME : hardwired strength as requirement
-	    emud_item:do(ItemPid, pickup, [{strength, 50}])
+	    emud_item:do(ItemPid, pickup, [{strength, 50}]);
+	{error, no_such_item} ->
+	    {error, no_such_item}   
     end.
 
 

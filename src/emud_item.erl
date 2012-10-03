@@ -94,17 +94,22 @@ get_pickup_reqs(State) ->
 
 handle_pickup(State, PlayerProperties) ->
     error_logger:info_msg("~p: pickup: Requirements: ~p Capabilities: ~p~n", [?MODULE, get_pickup_reqs(State), PlayerProperties]),
-    %% FIXME: insert guard that checks says no, if the item 
-    %% is already picked up: picked_up_state == picked_up
-    case check_properties(get_pickup_reqs(State), PlayerProperties, []) of
-	[] ->
-	    NewState = State#item_state{picked_up_state = picked_up},
-	    {reply, ok, NewState};
-	FailedProperties ->
-	    %% FIXME: Hardwired failure message
-	    {reply, {error, 
-		     {demands, FailedProperties}, 
-		     {display_message, "You try to lift the stone, but it is too heavy.\nYour back hurts.\n"}}, State}
+    case State#item_state.picked_up_state of 
+	picked_up ->
+	    {reply, {error, no_such_item}, State};
+	not_picked_up ->
+	    %% FIXME: insert guard that checks says no, if the item 
+	    %% is already picked up: picked_up_state == picked_up
+	    case check_properties(get_pickup_reqs(State), PlayerProperties, []) of
+		[] ->
+		    NewState = State#item_state{picked_up_state = picked_up},
+		    {reply, ok, NewState};
+		FailedProperties ->
+		    %% FIXME: Hardwired failure message
+		    {reply, {error, 
+			     {demands, FailedProperties}, 
+			     {display_message, "You try to lift the stone, but it is too heavy.\nYour back hurts.\n"}}, State}
+	    end
     end.
 
 %% Note: N^2 algorithm. But lists are short?
