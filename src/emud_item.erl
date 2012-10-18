@@ -23,7 +23,14 @@
 
 -include_lib("kernel/include/file.hrl").
 
--include("emud_item.hrl").
+-type picked_up_state() :: picked_up | not_picked_up.
+
+-record(item_state, {description, 
+		     short_description, 
+		     interaction_names, 
+		     item_mod,
+		     picked_up_state = not_picked_up :: picked_up_state(),
+		     pickup_requirements=[]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -54,22 +61,24 @@ do(Item, Action) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-init([]) ->
-    {ok, #item_state{}};
-init([State]) ->
-    {ok, State}.
+
+init([Mod]) ->
+    {ok, #item_state{item_mod = Mod}}.
 
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
 handle_call({get_description}, _From, State) ->
-    Reply = {ok, State#item_state.description},
+    Mod = State#item_state.item_mod,
+    Reply = {ok, Mod:description()},
     {reply, Reply, State};
 handle_call({get_short_description}, _From, State) ->
-    Reply = {ok, State#item_state.short_description},
+    Mod = State#item_state.item_mod,
+    Reply = {ok, Mod:short_description()},
     {reply, Reply, State};
 handle_call({get_interaction_names}, _From, State) ->
-    {reply, {ok, State#item_state.interaction_names}, State};
+    Mod = State#item_state.item_mod,
+    {reply, {ok, Mod:interaction_names()}, State};
 handle_call({pickup, PlayerProperties}, _From, State) ->
     handle_pickup(State, PlayerProperties).
 
@@ -90,7 +99,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 get_pickup_reqs(State) ->
-    State#item_state.pickup_requirements.
+    Mod = State#item_state.item_mod,
+    Mod:pickup_requirements().
 
 handle_pickup(State, PlayerProperties) ->
     error_logger:info_msg("~p: pickup: Requirements: ~p Capabilities: ~p~n", [?MODULE, get_pickup_reqs(State), PlayerProperties]),
