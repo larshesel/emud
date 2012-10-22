@@ -25,12 +25,9 @@
 
 -type picked_up_state() :: picked_up | not_picked_up.
 
--record(item_state, {description, 
-		     short_description, 
-		     interaction_names, 
-		     item_mod,
-		     picked_up_state = not_picked_up :: picked_up_state(),
-		     pickup_requirements=[]}).
+-record(item_state, {item_mod,
+		     picked_up_state = not_picked_up :: picked_up_state()
+		    }).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
