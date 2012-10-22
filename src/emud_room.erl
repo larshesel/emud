@@ -24,7 +24,7 @@
 	 terminate/2, code_change/3]).
 
 -include("emud.hrl").
--include("emud_room.hrl").
+-record(room_state, {directions=[], room_mod, items=[], players=[], ais=[]}).
 
 %%%===================================================================
 %%% API
@@ -89,11 +89,8 @@ start_link(State) ->
 %%% gen_server callbacks
 %%%===================================================================
 
-init([]) ->
-    {ok, #room_state{}};
-init([State]) ->
-    {ok, State}.
-
+init([Mod]) ->
+    {ok, #room_state{room_mod = Mod}}.
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
@@ -101,7 +98,8 @@ handle_call({get_directions}, _From, State) ->
     Reply = {ok, State#room_state.directions},
     {reply, Reply, State};
 handle_call({get_description}, _From, State) ->
-    Reply = {ok, State#room_state.description},
+    Mod = State#room_state.room_mod,
+    Reply = {ok, Mod:description()},
     {reply, Reply, State};
 handle_call({link_room, ToPid, Direction}, _From, State) ->
     Reply = ok,

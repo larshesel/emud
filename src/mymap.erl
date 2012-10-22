@@ -4,8 +4,8 @@
 
 
 init() ->
-    {ok, StartRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(startroom)),
-    {ok, WestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(westroom)),
+    {ok, StartRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(courtroom)),
+    {ok, WestRoom} = supervisor:start_child(emud_room_sup, emud_specs:childspec_room(lobby)),
 
     
     {ok, Stone} = supervisor:start_child(emud_item_sup, emud_specs:childspec_item(stone)),
