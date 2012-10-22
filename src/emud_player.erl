@@ -25,7 +25,15 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--include("emud_player.hrl").
+-type room() :: pid() | 'no_room'.
+-type item() :: pid().
+-type output_server() :: pid() | none.
+-type player() :: pid().
+
+-record(state, {player_mod,
+		room = no_room :: room(), 
+		items=[] :: list(item()), 
+		output_server = none:: output_server()}).
 
 %%%===================================================================
 %%% API
@@ -80,10 +88,8 @@ start_link(State) ->
 %%% gen_server callbacks
 %%%===================================================================
 
-init([]) ->
-    {ok, #state{}};
-init([State]) ->
-    {ok, State}.
+init([Mod]) ->
+    {ok, #state{player_mod = Mod}}.
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
@@ -122,11 +128,14 @@ handle_call({drop, IN}, _From, State) ->
 	    {reply, ok, NewState}
     end;
 handle_call({get_name}, _From, State) ->
-    {reply, {ok, State#state.name}, State};
+    Mod = State#state.player_mod,
+    {reply, {ok, Mod:name()}, State};
 handle_call({get_description}, _From, State) ->
-    {reply, {ok, State#state.description}, State};
+    Mod = State#state.player_mod,
+    {reply, {ok, Mod:description()}, State};
 handle_call({get_short_description}, _From, State) ->
-    {reply, {ok, State#state.short_description}, State};
+    Mod = State#state.player_mod,
+    {reply, {ok, Mod:short_description()}, State};
 handle_call({crash}, _From, _State) ->
     0/0.
 
@@ -169,10 +178,12 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 handle_look_at(_Player, IN, State) ->
+    Mod = State#state.player_mod,
+    Name = Mod:name(),
     if 
 	%% are you looking a me?
-	IN == State#state.name ->
-	    {reply, {ok, State#state.description}, State};
+	IN == Name ->
+	    {reply, {ok, Mod:description()}, State};
 	true -> 
 	    PlayerItemPids = get_item_pids(State, IN),
 	    {ok, RoomItemPids} = emud_room:lookup_item_by_in(State#state.room, IN),

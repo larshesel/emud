@@ -31,10 +31,10 @@ init() ->
     emud_room:link_rooms(StartRoom, SheepStable, s),
     emud_room:link_rooms(SheepStable, StartRoom, n),
 
-    {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player1)),
+    {ok, P1} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(dilbert)),
     emud_player:enter(P1, StartRoom),
 
-    {ok, P2} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(player2)),
+    {ok, P2} = supervisor:start_child(emud_player_sup, emud_specs:childspec_player(lars)),
     emud_player:enter(P2, StartRoom),
 
     emud_console:start(P1).
