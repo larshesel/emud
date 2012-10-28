@@ -25,15 +25,14 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--type room() :: pid() | 'no_room'.
--type item() :: pid().
 -type output_server() :: pid() | none.
--type player() :: pid().
 
 -record(state, {player_mod,
 		room = no_room :: room(), 
 		items=[] :: list(item()), 
 		output_server = none:: output_server()}).
+
+-include("emud.hrl").
 
 %%%===================================================================
 %%% API
