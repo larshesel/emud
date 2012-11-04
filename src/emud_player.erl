@@ -27,7 +27,7 @@
 
 -type output_server() :: pid() | none.
 
--record(state, {player_mod,
+-record(state, {name,
 		room = no_room :: room(), 
 		items=[] :: list(item()), 
 		output_server = none:: output_server()}).
@@ -87,8 +87,9 @@ start_link(State) ->
 %%% gen_server callbacks
 %%%===================================================================
 
-init([Mod]) ->
-    {ok, #state{player_mod = Mod}}.
+init([{new_player, PData}]) ->
+    State = #state{name = PData#player_creation_data.name},
+    {ok, State}.
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
@@ -127,17 +128,19 @@ handle_call({drop, IN}, _From, State) ->
 	    {reply, ok, NewState}
     end;
 handle_call({get_name}, _From, State) ->
-    Mod = State#state.player_mod,
-    {reply, {ok, Mod:name()}, State};
+    {reply, {ok, State#state.name}, State};
 handle_call({get_description}, _From, State) ->
-    Mod = State#state.player_mod,
-    {reply, {ok, Mod:description()}, State};
+    {reply, {ok, player_description()}, State};
 handle_call({get_short_description}, _From, State) ->
-    Mod = State#state.player_mod,
-    {reply, {ok, Mod:short_description()}, State};
+    {reply, {ok, player_short_description()}, State};
 handle_call({crash}, _From, _State) ->
     0/0.
 
+player_description() ->
+    "Description: Not implemented".
+
+player_short_description() ->
+    "Short description: Not implemented".
 
 handle_cast({send_message, Message}, State) ->
     if is_pid(State#state.output_server) ->
@@ -177,12 +180,11 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 handle_look_at(_Player, IN, State) ->
-    Mod = State#state.player_mod,
-    Name = Mod:name(),
+    Name = State#state.name, 
     if 
 	%% are you looking a me?
 	IN == Name ->
-	    {reply, {ok, Mod:description()}, State};
+	    {reply, {ok, player_description()}, State};
 	true -> 
 	    PlayerItemPids = get_item_pids(State, IN),
 	    {ok, RoomItemPids} = emud_room:lookup_item_by_in(State#state.room, IN),

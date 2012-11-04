@@ -8,9 +8,26 @@
 %%%-------------------------------------------------------------------
 -module(emud_console).
 
--export([start/1]).
+-export([start/1, login/0]).
 
 -record(state, {output_server, player}).
+
+login() ->
+    PData = emud_create_player:create_player(),
+    StartRoom = find_start_room(courtroom),
+    InitArg = {new_player, PData},
+    PSpec = emud_specs:childspec_player(InitArg),
+    {ok, Player} = supervisor:start_child(emud_player_sup, PSpec),
+    emud_player:enter(Player, StartRoom),
+    start(Player).
+
+find_start_room(Requested) ->
+    case [Pid || {Name, Pid, _, _} <- supervisor:which_children(emud_room_sup), Requested == Name] of
+	[] ->
+	    {error, room_not_found};
+	[Pid] -> 
+	    Pid
+    end.
 
 start(Player) ->
     {ok, OutputConsole} = emud_console_output:start_link(),

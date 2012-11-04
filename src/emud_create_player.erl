@@ -4,7 +4,7 @@
 -include("emud.hrl").
 
 create_player() ->
-    Name = o:get_line(standard_io, 'name> '),
+    Name = io:get_line(standard_io, 'name> '),
     case player_exists(Name) of 
 	true ->
 	    load_player();
