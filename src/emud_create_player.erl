@@ -4,18 +4,23 @@
 -include("emud.hrl").
 
 create_player() ->
-    Name = io:get_line(standard_io, 'name> '),
-    case player_exists(Name) of 
+    Name = binary:list_to_bin(io:get_line(standard_io, 'name> ')),
+    case emud_player_dets:player_exists(Name) of 
 	true ->
-	    load_player();
+	    load_player(Name);
 	false -> 
 	    %% new player
 	    PData = #player_creation_data{name = Name},
-	    select_race(PData)
+	    save(Name, select_race(PData))
     end.
 
-load_player() ->
-    ok.
+save(Name, PData) ->
+    ok = emud_player_dets:put_player(Name, PData),
+    PData.
+    
+load_player(Name) ->
+    [{Name, State}] = emud_player_dets:get_player(Name),
+    State.
 
 select_race(PData) ->
     Races = [orc, human, elf],
@@ -48,6 +53,3 @@ select_class(PData) ->
 	    io:fwrite("Unknown class~n", []),
 	    select_class(PData)
     end.
-
-player_exists(_Name) ->
-    false.
