@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, get_player/1, put_player/2]).
+-export([start_link/0, get_player/1, put_player/2, delete_player/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -31,6 +31,9 @@ get_player(Key) ->
 put_player(Key, Player) ->
     gen_server:call(?SERVER, {put_player, Key, Player}).
 
+delete_player(Key) ->
+    gen_server:call(?SERVER, {delete_player, Key}).
+
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
@@ -46,8 +49,10 @@ handle_call({get_player, Key}, _From, State) ->
     {reply, Reply, State};
 handle_call({put_player, Key, Player}, _From, State) -> 
     Reply = dets:insert(dets_player_states, {Key, Player}),
+    {reply, Reply, State};
+handle_call({delete_player, Key}, _From, State) -> 
+    Reply = dets:delete(dets_player_states, Key),
     {reply, Reply, State}.
-
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
