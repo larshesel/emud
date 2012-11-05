@@ -1,4 +1,4 @@
--module(dets_tests).
+-module(player_db_tests).
 -include_lib("eunit/include/eunit.hrl").
 
 -define(setup(F), {setup, fun start/0, fun stop/1, F}).
