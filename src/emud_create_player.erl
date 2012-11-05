@@ -5,7 +5,7 @@
 
 create_player() ->
     Name = binary:list_to_bin(io:get_line(standard_io, 'name> ')),
-    case emud_player_dets:player_exists(Name) of 
+    case emud_player_db:player_exists(Name) of 
 	true ->
 	    load_player(Name);
 	false -> 
@@ -15,11 +15,11 @@ create_player() ->
     end.
 
 save(Name, PData) ->
-    ok = emud_player_dets:put_player(Name, PData),
+    ok = emud_player_db:put_player(Name, PData),
     PData.
     
 load_player(Name) ->
-    [{Name, State}] = emud_player_dets:get_player(Name),
+    [{Name, State}] = emud_player_db:get_player(Name),
     State.
 
 select_race(PData) ->

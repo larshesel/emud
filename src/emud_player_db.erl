@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 23 Oct 2012 by Lars Hesel Christensen <>
 %%%-------------------------------------------------------------------
--module(emud_player_dets).
+-module(emud_player_db).
 
 -behaviour(gen_server).
 
@@ -36,7 +36,7 @@ delete_player(Key) ->
 
 
 player_exists(Name) ->
-    case emud_player_dets:get_player(Name) of 
+    case get_player(Name) of 
 	[{Name, _State}] -> true;
 	_ -> false
     end.
