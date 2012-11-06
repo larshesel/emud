@@ -16,7 +16,7 @@
 -export([enter/2, describe/1, get_directions/1,
 	 go/2, pickup/2, get_items/1, drop/2,
 	 get_description/1, get_short_description/1,
-	 get_name/1, look_at/2]).
+	 get_name/1, look_at/2, save/1, quit/1]).
 
 %% DEBUG
 -export([crash/1]).
@@ -37,6 +37,12 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+quit(Player) ->
+    gen_server:call(Player, {quit, Player}).
+
+save(Player) ->
+    gen_server:call(Player, {save, Player}).
 
 look_at(Player, IN) ->
     gen_server:call(Player, {look_at, Player, IN}).
@@ -93,6 +99,12 @@ init([{new_player, PData}]) ->
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
+handle_call({quit, Player}, _From, State) ->
+    emud_room:player_quit(State#state.room, Player),
+    {stop, normal, ok, State};
+handle_call({save, _Player}, _From, State) ->
+    %% emud_player_db:put_player(State#state.name, );
+    {reply, ok, State};
 handle_call({pickup, Player, Item}, _From, State) ->
     pickup_item(Player, Item, State);
 handle_call({look_at, Player, IN}, _From, State) ->

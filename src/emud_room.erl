@@ -17,7 +17,7 @@
 	 link_rooms/3, get_players/1, get_items/1,
 	 enter/2, leave/2, add_item/2, remove_item/2,
 	 lookup_item_by_in/2,
-	 get_ais/1, lookup_player_by_in/2]).
+	 get_ais/1, lookup_player_by_in/2, player_quit/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -29,6 +29,9 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+
+player_quit(Room, Player) ->
+    gen_server:call(Room, {player_quit, Player}).
 
 link_rooms(FromRoom, ToRoom, Direction) ->
     gen_server:call(FromRoom, {link_room, ToRoom, Direction}).
@@ -94,6 +97,10 @@ init([Mod]) ->
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
+handle_call({player_quit, Player}, _From, State) ->
+    NewState = State#room_state{players = lists:delete(Player, State#room_state.players)},
+    handle_cast({message_room, {player_quit, Player}}, State),
+    {reply, ok, NewState};
 handle_call({get_directions}, _From, State) ->
     Reply = {ok, State#room_state.directions},
     {reply, Reply, State};

@@ -11,12 +11,13 @@
 -export([start/1, login/0]).
 
 -record(state, {output_server, player}).
+-include("emud.hrl").
 
 login() ->
     PData = emud_create_player:create_player(),
     StartRoom = find_start_room(courtroom),
     InitArg = {new_player, PData},
-    PSpec = emud_specs:childspec_player(InitArg),
+    PSpec = emud_specs:childspec_player(PData#player_creation_data.name, InitArg),
     {ok, Player} = supervisor:start_child(emud_player_sup, PSpec),
     emud_player:enter(Player, StartRoom),
     start(Player).
@@ -41,7 +42,10 @@ loop(State) ->
     ParsedLine = parse_line(string:tokens(string:strip(Line, right, $\n), " ")),
     case do_command(State, ParsedLine) of 
 	quit -> 
-	    gen_server:call(State#state.output_server, stop),
+	    %%gen_server:call(State#state.output_server, stop),
+	    {ok, Name} = emud_player:get_name(State#state.player),
+	    emud_player:quit(State#state.player),
+	    supervisor:delete_child(emud_player_sup, Name),
 	    ok;
 	_ -> loop(State)
     end.
@@ -76,6 +80,8 @@ parse_line(["drop" | Args]) ->
     {drop, Args};
 parse_line(["crash"]) ->
     {crash, []};
+parse_line(["save"]) ->
+    {save, []};
 parse_line(_) ->
     {beg_your_pardon, []}.
 
@@ -102,8 +108,17 @@ do_command(State, {Command, Args}) ->
 	inventory -> 
 	    handle_inventory(State);
 	crash -> 
-	    handle_crash(State)
+	    handle_crash(State);
+	save ->
+	    handle_save(State)
     end.
+
+
+handle_save(State) ->
+    print(State, io_lib:format("Saving player... ", [])),
+    emud_player:save(State#state.player),
+    print(State, io_lib:format("Done", [])).    
+
 
 handle_look_at(State, []) ->
     print(State, io_lib:format("Look at what?.~n", []));
