@@ -4,7 +4,7 @@
 -include("emud.hrl").
 
 create_player() ->
-    Name = binary:list_to_bin(io:get_line(standard_io, 'name> ')),
+    Name = binary:list_to_bin(string:strip(io:get_line(standard_io, 'name> '), right, $\n)),
     case emud_player_db:player_exists(Name) of 
 	true ->
 	    load_player(Name);
