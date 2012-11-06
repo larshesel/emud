@@ -54,7 +54,9 @@ handle_cast({write_message, Message}, State) ->
 handle_message({player_left_room, Pid})->
     io:fwrite("~s left the room.~n", [get_text(emud_player:get_name(Pid))]);
 handle_message({player_entered_room, Pid})->
-    io:fwrite("~s entered the room.~n", [get_text(emud_player:get_name(Pid))]).
+    io:fwrite("~s entered the room.~n", [get_text(emud_player:get_name(Pid))]);
+handle_message({player_quit, Pid}) -> 
+    io:fwrite("someone is a quitter.~n", []).
 
 get_text({ok, Text}) ->
     Text.
