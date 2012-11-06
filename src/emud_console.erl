@@ -14,12 +14,17 @@
 -include("emud.hrl").
 
 login() ->
-    PData = emud_create_player:create_player(),
-    StartRoom = find_start_room(courtroom),
-    InitArg = {new_player, PData},
-    PSpec = emud_specs:childspec_player(PData#player_creation_data.name, InitArg),
+    {Type, Name, Data} = emud_create_player:create_player(),
+    PSpec = emud_specs:childspec_player(Type, Name, Data),
     {ok, Player} = supervisor:start_child(emud_player_sup, PSpec),
-    emud_player:enter(Player, StartRoom),
+    case Type of 
+	existing_player ->
+	    {ok, Room} = emud_player:get_current_room(Player),
+	    emud_player:enter(Player, Room);
+	new_player ->
+	    StartRoom = find_start_room(courtroom),
+	    emud_player:enter(Player, StartRoom)
+    end,
     start(Player).
 
 find_start_room(Requested) ->
@@ -44,6 +49,7 @@ loop(State) ->
 	quit -> 
 	    %%gen_server:call(State#state.output_server, stop),
 	    {ok, Name} = emud_player:get_name(State#state.player),
+	    emud_player:save(State#state.player),
 	    emud_player:quit(State#state.player),
 	    supervisor:delete_child(emud_player_sup, Name),
 	    ok;
@@ -117,7 +123,7 @@ do_command(State, {Command, Args}) ->
 handle_save(State) ->
     print(State, io_lib:format("Saving player... ", [])),
     emud_player:save(State#state.player),
-    print(State, io_lib:format("Done", [])).    
+    print(State, io_lib:format("Done~n", [])).    
 
 
 handle_look_at(State, []) ->
