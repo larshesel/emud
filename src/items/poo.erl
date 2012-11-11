@@ -9,7 +9,7 @@ description() ->
     "It is a dark, round object.\nYou are disgusted to realize it's a poo\nand someone has been eating peanuts.\n".
 
 interaction_names() ->
-    ["object", "poo"].
+    [[<<"object">>], [<<"poo">>]].
 
 pickup_requirements() ->
     [].

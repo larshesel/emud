@@ -10,7 +10,7 @@ description() ->
     "A dingy looking chair, made of driftwood.\n".
 
 interaction_names() ->
-    ["chair"].
+    [[<<"chair">>]].
 
 pickup_requirements() ->
     [].

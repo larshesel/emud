@@ -10,7 +10,7 @@ description() ->
     "A nice looking stone. You feel like picking it up. Looks heavy though.\n".
 
 interaction_names() ->
-    ["heavy stone"].
+    [[<<"heavy">>,<<"stone">>]].
 
 pickup_requirements() ->
     [{strength, 60}].

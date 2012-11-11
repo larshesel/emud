@@ -9,7 +9,7 @@ description() ->
     "A nice looking stone. You feel like picking it up.\n".
 
 interaction_names() ->
-    ["stone"].
+    [[<<"stone">>]].
 
 
 pickup_requirements() ->

@@ -185,14 +185,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-%% -spec get_strength(any()) -> strength().
-%% get_strength(State) ->
-%%     State#state.strength.
-
 get_item_pids(State, IN) ->
     lists:filter(fun(Pid) -> 
 			 {ok, Names} = emud_item:get_interaction_names(Pid),  
-			 length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0 
+			 lists:member(IN, Names) == true
 		 end, 
 		 State#state.items).
     
@@ -203,8 +199,6 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 handle_look_at(_Player, IN, State) ->
-    error_logger:info_msg("IN: ~p~n ", [IN]),
-    error_logger:info_msg("State.ins: ~p~n ", [State#state.ins]),
     case lists:member(IN, State#state.ins) of
 	true ->
 	    {reply, {ok, player_description()}, State};
