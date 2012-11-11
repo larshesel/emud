@@ -70,11 +70,11 @@ add_item(Room, Item) ->
 remove_item(Room, Item) ->
     gen_server:call(Room, {remove_item, Item}).
 
--spec lookup_item_by_in(room(), in()) -> {ok, list(item())}.
+-spec lookup_item_by_in(room(), interaction_name:in()) -> {ok, list(item())}.
 lookup_item_by_in(Room, IN) ->
     gen_server:call(Room, {lookup_item_by_in, IN}).
 
--spec lookup_player_by_in(room(), in()) -> {ok, list(player())}.
+-spec lookup_player_by_in(room(), interaction_name:in()) -> {ok, list(player())}.
 lookup_player_by_in(Room, IN) ->
     gen_server:call(Room, {lookup_player_by_in, IN}).
 
@@ -140,22 +140,20 @@ handle_call({remove_item, Item}, _From, State) ->
     NewState = State#room_state{items = lists:delete(Item, State#room_state.items)},
     {reply, Reply, NewState};
 handle_call({lookup_item_by_in, IN}, _From, State) ->
-    Matches = lists:filter(fun(Pid) -> 
-		 		   {ok, Names} = emud_item:get_interaction_names(Pid),
-				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
-		 	   end,
-		 State#room_state.items),
+    Matches = find_matches_by_in(fun emud_item:get_interaction_names/1, IN, State#room_state.items),
     Reply = {ok, Matches},
     {reply, Reply, State};
 handle_call({lookup_player_by_in, IN}, _From, State) ->
-    Matches = lists:filter(fun(Pid) -> 
-		 		   {ok, Names} = emud_player:get_name(Pid),
-				   length(lists:filter(fun(Name) -> Name == IN end, Names)) > 0
-		 	   end,
-		 State#room_state.items),
+    Matches = find_matches_by_in(fun emud_player:get_name/1, IN, State#room_state.items),
     Reply = {ok, Matches},
     {reply, Reply, State}.
     
+find_matches_by_in(FunGetIns, IN, Pids) ->
+    lists:filter(fun(Pid) -> 
+			 {ok, Names} = FunGetIns(Pid),
+			 lists:member(IN, Names) == true
+		 end,
+		 Pids).
 
 handle_cast({message_room, {Type, From}}, State) ->
     [emud_player:send_msg(X, {Type, From}) || X<-State#room_state.players, X /= From],

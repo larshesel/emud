@@ -100,7 +100,7 @@ do_command(State, {Command, Args}) ->
 	quit -> 
 	    quit;
 	drop -> 
-	    handle_drop(State, Args);
+	    handle_drop(State, lists:map(fun erlang:list_to_binary/1, Args));
 	go ->
 	    handle_go(State, Args);
 	describe -> 
@@ -108,7 +108,7 @@ do_command(State, {Command, Args}) ->
 	beg_your_pardon -> 
 	    print(State, io_lib:format("You can't do that~n", []));
 	pickup -> 
-	    handle_pickup(State, Args);
+	    handle_pickup(State, lists:map(fun erlang:list_to_binary/1, Args));
 	help -> 
 	    print_help(State);
 	inventory -> 
@@ -145,8 +145,7 @@ handle_crash(State) ->
 
 handle_drop(State, []) ->
     print(State, io_lib:format("You can't drop that.~n", []));
-handle_drop(State, INList) ->
-    IN = string:join(INList, " "),
+handle_drop(State, IN) ->
     case emud_player:drop(State#state.player, IN) of 
 	{error, _} ->
 	    print(State, io_lib:format("What to drop?~n", []));
@@ -177,15 +176,14 @@ print_help(State) ->
 
 handle_pickup(State, []) ->
     print(State, io_lib:format("You can't pick that up.~n", []));
-handle_pickup(State, ArgList) ->
-    Args = string:join(ArgList, " "),
-    case emud_player:pickup(State#state.player, Args) of 
+handle_pickup(State, IN) ->
+    case emud_player:pickup(State#state.player, IN) of 
 	{error, could_not_pickup_item} ->
 	    print(State, io_lib:format("What do you want to pick up?~n", []));
 	{error, {display_message, DisplayMessage}} ->
 	    print(State, io_lib:format("~s", [DisplayMessage]));
         ok ->
-	    print(State, io_lib:format("You pick up ~s.~n", [Args]))
+	    print(State, io_lib:format("You pick up ~s.~n", [IN]))
 	end.
 
 handle_go(State, no_such_direction) ->

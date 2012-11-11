@@ -1,4 +1,4 @@
--type in() :: string().
+%%-type in() :: string().
 -type room() :: pid() | no_room.
 -type player() :: pid().
 -type item() :: pid().

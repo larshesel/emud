@@ -222,16 +222,16 @@ handle_look_at(_Player, IN, State) ->
 	    end
     end.
 	    
--spec pickup_item(player(), string(), any()) -> {reply, any(), any()}.
-pickup_item(Player, ItemInteractionName, State) ->
-    case emud_room:lookup_item_by_in(State#state.room, ItemInteractionName) of
-	{ok, [Item | _]} -> 
+-spec pickup_item(player(), interaction_name:in(), any()) -> {reply, any(), any()}.
+pickup_item(Player, IN, State) ->
+    case emud_room:lookup_item_by_in(State#state.room, IN) of
+	{ok, [ItemPid | _]} -> 
 	    %% start negotiation with the item.
-	    Reply = pick_up_item_negotiation(Player, Item),
+	    Reply = pick_up_item_negotiation(Player, ItemPid),
 	    case Reply of
 		ok ->
-		    emud_room:remove_item(State#state.room, Item),
-		    NewState = State#state{items = [Item | State#state.items]},
+		    emud_room:remove_item(State#state.room, ItemPid),
+		    NewState = State#state{items = [ItemPid | State#state.items]},
 		    {reply, Reply, NewState};
 		{error, _, {display_message, DisplayMessage}} ->
 		    {reply, {error, {display_message, DisplayMessage}}, State};
