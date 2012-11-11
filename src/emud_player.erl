@@ -28,6 +28,7 @@
 -type output_server() :: pid() | none.
 
 -record(state, {name,
+		ins :: interaction_name:ins(),
 		room = no_room :: room(), 
 		items=[] :: list(item()), 
 		output_server = none:: output_server()}).
@@ -46,6 +47,7 @@ quit(Player) ->
 save(Player) ->
     gen_server:call(Player, {save}).
 
+-spec look_at(pid(), interaction_name:in()) -> any().
 look_at(Player, IN) ->
     gen_server:call(Player, {look_at, Player, IN}).
 
@@ -96,7 +98,8 @@ start_link(State) ->
 %%%===================================================================
 
 init([{new_player, PData}]) ->
-    State = #state{name = PData#player_creation_data.name},
+    State = #state{name = PData#player_creation_data.name, 
+		   ins = [[PData#player_creation_data.name]]},
     emud_player_db:put_player(State#state.name, State),
     {ok, State};
 init([{existing_player, State}]) -> 
@@ -157,10 +160,10 @@ handle_call({crash}, _From, _State) ->
     0/0.
 
 player_description() ->
-    "Description: Not implemented".
+    "Description: Not implemented~n".
 
 player_short_description() ->
-    "Short description: Not implemented".
+    "Short description: Not implemented~n".
 
 handle_cast({send_message, Message}, State) ->
     if is_pid(State#state.output_server) ->
@@ -200,12 +203,13 @@ leave_old_room(Room, Player) ->
     ok = emud_room:leave(Room, Player).
 
 handle_look_at(_Player, IN, State) ->
-    Name = State#state.name, 
-    if 
-	%% are you looking a me?
-	IN == Name ->
+    error_logger:info_msg("IN: ~p~n ", [IN]),
+    error_logger:info_msg("State.ins: ~p~n ", [State#state.ins]),
+    case lists:member(IN, State#state.ins) of
+	true ->
 	    {reply, {ok, player_description()}, State};
-	true -> 
+	false -> 
+	    %% not me, look at other players, my items, items in room
 	    PlayerItemPids = get_item_pids(State, IN),
 	    {ok, RoomItemPids} = emud_room:lookup_item_by_in(State#state.room, IN),
 	    {ok, PlayerPids} = emud_room:get_players(State#state.room),

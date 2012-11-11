@@ -94,7 +94,7 @@ parse_line(_) ->
 do_command(State, {Command, Args}) ->
     case Command of 
 	look_at ->
-	    handle_look_at(State, Args);
+	    handle_look_at(State, lists:map(fun erlang:list_to_binary/1, Args));
 	nop -> 
 	    ok;
 	quit -> 
@@ -127,9 +127,8 @@ handle_save(State) ->
 
 
 handle_look_at(State, []) ->
-    print(State, io_lib:format("Look at what?.~n", []));
-handle_look_at(State, INList) ->
-    IN = string:join(INList, " "),
+    print(State, io_lib:format("Look at what?~n", []));
+handle_look_at(State, IN) ->
     case emud_player:look_at(State#state.player, IN) of
 	{ok, Message} -> 
 	    print(State, Message);
