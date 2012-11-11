@@ -16,7 +16,8 @@
 -export([enter/2, describe/1, get_directions/1,
 	 go/2, pickup/2, get_items/1, drop/2,
 	 get_description/1, get_short_description/1,
-	 get_name/1, look_at/2, save/1, quit/1, get_current_room/1]).
+	 get_name/1, look_at/2, save/1, quit/1, get_current_room/1,
+	 get_interaction_names/1]).
 
 %% DEBUG
 -export([crash/1]).
@@ -38,6 +39,9 @@
 %%%===================================================================
 %%% API
 %%%===================================================================
+get_interaction_names(Player) ->
+    gen_server:call(Player, {get_interaction_names}).
+
 get_current_room(Player) ->
     gen_server:call(Player, {get_current_room}).
 
@@ -107,6 +111,9 @@ init([{existing_player, State}]) ->
 
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
+handle_call({get_interaction_names}, _From, State) ->
+    Room = State#state.ins, 
+    {reply, {ok, Room}, State};
 handle_call({get_current_room}, _From, State) ->
     Room = State#state.room, 
     {reply, {ok, Room}, State};
@@ -207,9 +214,11 @@ handle_look_at(_Player, IN, State) ->
 	    PlayerItemPids = get_item_pids(State, IN),
 	    {ok, RoomItemPids} = emud_room:lookup_item_by_in(State#state.room, IN),
 	    {ok, PlayerPids} = emud_room:get_players(State#state.room),
-	    MachedPlayerPids = [X || X<-lists:filter(fun(Pid) -> Pid /= self() end, PlayerPids), emud_player:get_name(X) == {ok, IN}],
-	    if MachedPlayerPids /= [] ->
-		    [Pid | _] = MachedPlayerPids,
+	    OtherPids = get_other_players(self(), PlayerPids),
+	    MatchedPlayerPids = [X || X <- OtherPids,
+				      lists:member(IN, strip_ok(emud_player:get_interaction_names(X)))],
+	    if MatchedPlayerPids /= [] ->
+		    [Pid | _] = MatchedPlayerPids,
 		    {reply, emud_player:get_description(Pid), State};
 	       PlayerItemPids /= [] ->
 		    [Pid | _] = PlayerItemPids,
@@ -218,9 +227,15 @@ handle_look_at(_Player, IN, State) ->
 		    [Pid | _] = RoomItemPids,
 		    {reply, emud_item:get_description(Pid), State};
 	       true ->
-		{reply, {ok, not_found}, State}
+		    {reply, {ok, not_found}, State}
 	    end
     end.
+
+strip_ok({ok, Data}) ->
+    Data.
+
+get_other_players(MyPid, PidList) ->
+    lists:filter(fun(Pid) -> Pid /= MyPid end, PidList).
 	    
 -spec pickup_item(player(), interaction_name:in(), any()) -> {reply, any(), any()}.
 pickup_item(Player, IN, State) ->
