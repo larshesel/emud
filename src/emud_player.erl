@@ -28,7 +28,10 @@
 
 -type output_server() :: pid() | none.
 
+-record(stats, {strength}).
+
 -record(state, {name,
+		stats = #stats{},
 		ins :: interaction_name:ins(),
 		room = no_room :: room(), 
 		items=[] :: list(item()), 
@@ -103,7 +106,8 @@ start_link(State) ->
 
 init([{new_player, PData}]) ->
     State = #state{name = PData#player_creation_data.name, 
-		   ins = [[PData#player_creation_data.name]]},
+		   ins = [[PData#player_creation_data.name]],
+		   stats = #stats{strength = PData#player_creation_data.strength}},
     emud_player_db:put_player(State#state.name, State),
     {ok, State};
 init([{existing_player, State}]) -> 
@@ -242,7 +246,7 @@ pickup_item(Player, IN, State) ->
     case emud_room:lookup_item_by_in(State#state.room, IN) of
 	{ok, [ItemPid | _]} -> 
 	    %% start negotiation with the item.
-	    Reply = pick_up_item_negotiation(Player, ItemPid),
+	    Reply = pick_up_item_negotiation(State, ItemPid),
 	    case Reply of
 		ok ->
 		    emud_room:remove_item(State#state.room, ItemPid),
@@ -256,15 +260,14 @@ pickup_item(Player, IN, State) ->
 	_ -> {reply, {error, could_not_pickup_item}, State}
     end.
 
-pick_up_item_negotiation(_Player, ItemPid) ->
+pick_up_item_negotiation(State, ItemPid) ->
     error_logger:info_msg("~p: pickup: attempting pickup~n", [?MODULE]),
     case emud_item:do(ItemPid, pickup) of 
 	ok ->
 	    ok;
 	{error, {demands, Requirements}, _} -> 
 	    error_logger:info_msg("~p: Item demands requirements: ~p~n", [?MODULE, Requirements]),
-	    %% FIXME : hardwired strength as requirement
-	    emud_item:do(ItemPid, pickup, [{strength, 50}]);
+	    emud_item:do(ItemPid, pickup, [{strength, (State#state.stats)#stats.strength}]);
 	{error, no_such_item} ->
 	    {error, no_such_item}   
     end.

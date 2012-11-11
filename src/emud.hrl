@@ -6,4 +6,4 @@
 -type race() :: orc | human  | elf.
 -type class() :: mage | warrior | thief.
 
--record(player_creation_data, {name, attributes, class :: class(), race :: race()}).
+-record(player_creation_data, {name, attributes, class :: class(), race :: race(), strength}).

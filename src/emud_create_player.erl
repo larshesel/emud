@@ -11,8 +11,12 @@ create_player() ->
 	false -> 
 	    %% new player
 	    PData = #player_creation_data{name = Name},
-	    {new_player, Name, select_race(PData)}
+	    {new_player, Name, set_stats(select_race(PData))}
     end.
+
+set_stats(PData) ->
+    %% FIXME : create much better stats, depending on race etc.
+    PData#player_creation_data{strength = 57}.
     
 load_player(Name) ->
     [{Name, State}] = emud_player_db:get_player(Name),
